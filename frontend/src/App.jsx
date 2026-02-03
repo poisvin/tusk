@@ -1,15 +1,23 @@
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Layout from './components/Layout';
+import Today from './pages/Today';
+import Calendar from './pages/Calendar';
+import Notes from './pages/Notes';
+import Settings from './pages/Settings';
+
 function App() {
   return (
-    <div className="min-h-screen bg-background-dark text-white flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold text-primary mb-4">Tusk</h1>
-        <p className="text-slate-400">Personal Task Manager</p>
-        <span className="material-symbols-outlined text-6xl text-primary mt-8 block">
-          task_alt
-        </span>
-      </div>
-    </div>
-  )
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Layout />}>
+          <Route index element={<Today />} />
+          <Route path="calendar" element={<Calendar />} />
+          <Route path="notes" element={<Notes />} />
+          <Route path="settings" element={<Settings />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;
