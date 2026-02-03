@@ -12,8 +12,17 @@ export default function TaskItem({ task, onToggle, onTaskClick, isCarriedOver })
 
   const formatTime = (time) => {
     if (!time) return null;
-    const date = new Date(time);
-    return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+    // Extract time portion and format it directly to avoid timezone issues
+    // Time comes as "2026-02-03T20:13:00" - extract HH:mm
+    const timeMatch = time.match(/T(\d{2}):(\d{2})/);
+    if (!timeMatch) return null;
+
+    let hours = parseInt(timeMatch[1], 10);
+    const minutes = timeMatch[2];
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12 || 12;
+
+    return `${hours}:${minutes} ${ampm}`;
   };
 
   const getTimeDisplay = () => {

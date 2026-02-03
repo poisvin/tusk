@@ -130,8 +130,16 @@ export default function Calendar() {
 
   const formatTime = (time) => {
     if (!time) return '';
-    const date = new Date(time);
-    return format(date, 'hh:mm a');
+    // Extract time portion directly to avoid timezone issues
+    const timeMatch = time.match(/T(\d{2}):(\d{2})/);
+    if (!timeMatch) return '';
+
+    let hours = parseInt(timeMatch[1], 10);
+    const minutes = timeMatch[2];
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12 || 12;
+
+    return `${hours}:${minutes} ${ampm}`;
   };
 
   const days = viewMode === 'week' ? getWeekDays() : getMonthDays();
