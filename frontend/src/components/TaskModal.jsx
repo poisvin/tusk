@@ -65,7 +65,7 @@ function MenuBar({ editor }) {
   );
 }
 
-export default function TaskModal({ isOpen, onClose, onSave, task = null, tags = [] }) {
+export default function TaskModal({ isOpen, onClose, onSave, onDelete, task = null, tags = [] }) {
   const [formData, setFormData] = useState({
     title: '',
     scheduled_date: format(new Date(), 'yyyy-MM-dd'),
@@ -389,6 +389,24 @@ export default function TaskModal({ isOpen, onClose, onSave, task = null, tags =
               }`} />
             </button>
           </div>
+
+          {/* Delete Button - only when editing */}
+          {task && onDelete && (
+            <div className="pt-4 border-t border-slate-800">
+              <button
+                type="button"
+                onClick={() => {
+                  if (window.confirm('Are you sure you want to delete this task?')) {
+                    onDelete(task.id);
+                  }
+                }}
+                className="w-full py-3 rounded-lg border border-red-500/30 text-red-500 hover:bg-red-500/10 transition-all flex items-center justify-center gap-2"
+              >
+                <span className="material-symbols-outlined">delete</span>
+                Delete Task
+              </button>
+            </div>
+          )}
         </form>
       </div>
     </div>

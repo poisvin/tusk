@@ -117,6 +117,17 @@ export default function Calendar() {
     }
   };
 
+  const handleDeleteTask = async (id) => {
+    try {
+      await tasksApi.delete(id);
+      setModalOpen(false);
+      setEditingTask(null);
+      loadTasks();
+    } catch (error) {
+      console.error('Failed to delete task:', error);
+    }
+  };
+
   const formatTime = (time) => {
     if (!time) return '';
     const date = new Date(time);
@@ -291,6 +302,7 @@ export default function Calendar() {
         isOpen={modalOpen}
         onClose={() => { setModalOpen(false); setEditingTask(null); }}
         onSave={handleSaveTask}
+        onDelete={handleDeleteTask}
         task={editingTask}
         tags={tags}
       />

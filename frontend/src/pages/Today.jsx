@@ -85,6 +85,17 @@ export default function Today() {
     setEditingTask(null);
   };
 
+  const handleDeleteTask = async (id) => {
+    try {
+      await tasksApi.delete(id);
+      setModalOpen(false);
+      setEditingTask(null);
+      loadTasks();
+    } catch (error) {
+      console.error('Failed to delete task:', error);
+    }
+  };
+
   const filterTasks = (taskList) => {
     if (!searchQuery) return taskList;
     const query = searchQuery.toLowerCase();
@@ -176,6 +187,7 @@ export default function Today() {
         isOpen={modalOpen}
         onClose={handleCloseModal}
         onSave={handleSaveTask}
+        onDelete={handleDeleteTask}
         task={editingTask}
         tags={tags}
       />
