@@ -8,7 +8,7 @@ FactoryBot.define do
     status { :backlog }
     priority { :medium }
     category { :personal }
-    recurrence { :none }
+    recurrence { :one_time }
     remind { false }
     carried_over { false }
     original_date { nil }
