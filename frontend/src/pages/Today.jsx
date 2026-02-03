@@ -15,6 +15,8 @@ export default function Today() {
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showSearch, setShowSearch] = useState(false);
 
   const today = format(new Date(), 'yyyy-MM-dd');
 
@@ -83,6 +85,18 @@ export default function Today() {
     setEditingTask(null);
   };
 
+  const filterTasks = (taskList) => {
+    if (!searchQuery) return taskList;
+    const query = searchQuery.toLowerCase();
+    return taskList.filter(task =>
+      task.title.toLowerCase().includes(query) ||
+      (task.description && task.description.toLowerCase().includes(query))
+    );
+  };
+
+  const filteredTasks = filterTasks(tasks);
+  const filteredCarriedOver = filterTasks(carriedOver);
+
   const allTasks = [...tasks, ...carriedOver];
   const completedCount = allTasks.filter(t => t.status === 'done').length;
   const totalCount = allTasks.length;
@@ -93,18 +107,42 @@ export default function Today() {
         title="Today"
         leftIcon="calendar_today"
         rightAction={
-          <button className="flex items-center justify-center rounded-full h-10 w-10 bg-slate-800 text-white hover:bg-slate-700">
-            <span className="material-symbols-outlined">account_circle</span>
+          <button
+            onClick={() => setShowSearch(!showSearch)}
+            className="flex items-center justify-center rounded-full h-10 w-10 bg-slate-800 text-white hover:bg-slate-700"
+          >
+            <span className="material-symbols-outlined">
+              {showSearch ? 'close' : 'search'}
+            </span>
           </button>
         }
       />
 
       <main className="flex-1 pb-24">
+        {/* Search Bar */}
+        {showSearch && (
+          <div className="px-4 py-3 border-b border-slate-800">
+            <div className="relative">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">
+                search
+              </span>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search tasks..."
+                className="w-full bg-slate-800/50 border border-slate-700 rounded-lg pl-10 pr-4 py-2 text-white placeholder-slate-500 focus:outline-none focus:border-primary"
+                autoFocus
+              />
+            </div>
+          </div>
+        )}
+
         <ProgressCard completed={completedCount} total={totalCount} />
 
         <TaskSection
           title="Carried Over from Yesterday"
-          tasks={carriedOver}
+          tasks={filteredCarriedOver}
           onToggle={handleToggle}
           onTaskClick={handleTaskClick}
           isCarriedOver
@@ -112,16 +150,22 @@ export default function Today() {
 
         <TaskSection
           title="Today's Tasks"
-          tasks={tasks}
+          tasks={filteredTasks}
           onToggle={handleToggle}
           onTaskClick={handleTaskClick}
         />
 
-        {!loading && tasks.length === 0 && carriedOver.length === 0 && (
+        {!loading && filteredTasks.length === 0 && filteredCarriedOver.length === 0 && (
           <div className="text-center text-slate-400 py-12">
             <span className="material-symbols-outlined text-6xl mb-4 block">task_alt</span>
-            <p>No tasks for today</p>
-            <p className="text-sm">Tap + to add a task</p>
+            {searchQuery ? (
+              <p>No tasks matching "{searchQuery}"</p>
+            ) : (
+              <>
+                <p>No tasks for today</p>
+                <p className="text-sm">Tap + to add a task</p>
+              </>
+            )}
           </div>
         )}
       </main>
