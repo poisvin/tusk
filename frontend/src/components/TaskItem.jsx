@@ -1,5 +1,14 @@
+const STATUS_STYLES = {
+  backlog: { icon: 'inbox', color: 'text-slate-400' },
+  in_progress: { icon: 'play_circle', color: 'text-blue-400' },
+  partial: { icon: 'timelapse', color: 'text-orange-400' },
+  done: { icon: 'check_circle', color: 'text-green-400' },
+};
+
 export default function TaskItem({ task, onToggle, onTaskClick, isCarriedOver }) {
   const isDone = task.status === 'done';
+  const isInProgress = task.status === 'in_progress';
+  const isPartial = task.status === 'partial';
 
   const formatTime = (time) => {
     if (!time) return null;
@@ -19,12 +28,72 @@ export default function TaskItem({ task, onToggle, onTaskClick, isCarriedOver })
 
   const handleCheckboxClick = (e) => {
     e.stopPropagation();
-    onToggle(task.id, isDone ? 'backlog' : 'done');
+    // Cycle through statuses: backlog -> in_progress -> done
+    // Or if done, go back to backlog
+    if (isDone) {
+      onToggle(task.id, 'backlog');
+    } else {
+      onToggle(task.id, 'done');
+    }
+  };
+
+  const getStatusIcon = () => {
+    if (isCarriedOver) {
+      return (
+        <div className="text-orange-500 flex size-7 items-center justify-center" title="Carried over">
+          <span className="material-symbols-outlined">history</span>
+        </div>
+      );
+    }
+
+    if (isInProgress) {
+      return (
+        <div className="text-blue-400 flex size-7 items-center justify-center" title="In Progress">
+          <span className="material-symbols-outlined">play_circle</span>
+        </div>
+      );
+    }
+
+    if (isPartial) {
+      return (
+        <div className="text-orange-400 flex size-7 items-center justify-center" title="Partial">
+          <span className="material-symbols-outlined">timelapse</span>
+        </div>
+      );
+    }
+
+    if (isDone) {
+      return (
+        <div className="text-green-400 flex size-7 items-center justify-center" title="Done">
+          <span className="material-symbols-outlined">check_circle</span>
+        </div>
+      );
+    }
+
+    if (task.remind) {
+      return (
+        <div className="text-primary flex size-7 items-center justify-center" title="Reminder set">
+          <span className="material-symbols-outlined">notifications_active</span>
+        </div>
+      );
+    }
+
+    if (task.priority === 'high') {
+      return (
+        <div className="text-red-500 flex size-7 items-center justify-center" title="High priority">
+          <span className="material-symbols-outlined">priority_high</span>
+        </div>
+      );
+    }
+
+    return null;
   };
 
   return (
     <div
-      className="flex items-center gap-4 bg-background-dark px-4 min-h-[72px] py-2 justify-between border-b border-slate-800/50 cursor-pointer hover:bg-slate-800/30 transition-colors"
+      className={`flex items-center gap-4 bg-background-dark px-4 min-h-[72px] py-2 justify-between border-b border-slate-800/50 cursor-pointer hover:bg-slate-800/30 transition-colors ${
+        isInProgress ? 'border-l-2 border-l-blue-400' : ''
+      } ${isPartial ? 'border-l-2 border-l-orange-400' : ''}`}
       onClick={() => onTaskClick && onTaskClick(task)}
     >
       <div className="flex items-center gap-4">
@@ -46,23 +115,7 @@ export default function TaskItem({ task, onToggle, onTaskClick, isCarriedOver })
         </div>
       </div>
       <div className="shrink-0">
-        {isCarriedOver ? (
-          <div className="text-orange-500 flex size-7 items-center justify-center">
-            <span className="material-symbols-outlined">history</span>
-          </div>
-        ) : isDone ? (
-          <div className="text-slate-600 flex size-7 items-center justify-center">
-            <span className="material-symbols-outlined">done_all</span>
-          </div>
-        ) : task.remind ? (
-          <div className="text-primary flex size-7 items-center justify-center">
-            <span className="material-symbols-outlined">schedule</span>
-          </div>
-        ) : task.priority === 'high' ? (
-          <div className="text-red-500 flex size-7 items-center justify-center">
-            <span className="material-symbols-outlined text-sm">priority_high</span>
-          </div>
-        ) : null}
+        {getStatusIcon()}
       </div>
     </div>
   );

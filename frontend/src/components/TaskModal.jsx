@@ -21,6 +21,13 @@ const RECURRENCES = [
   { value: 'monthly', label: 'Monthly' },
 ];
 
+const STATUSES = [
+  { value: 'backlog', label: 'Backlog', icon: 'inbox', color: 'text-slate-400' },
+  { value: 'in_progress', label: 'In Progress', icon: 'play_circle', color: 'text-blue-400' },
+  { value: 'partial', label: 'Partial', icon: 'timelapse', color: 'text-orange-400' },
+  { value: 'done', label: 'Done', icon: 'check_circle', color: 'text-green-400' },
+];
+
 function MenuBar({ editor }) {
   if (!editor) return null;
 
@@ -67,6 +74,7 @@ export default function TaskModal({ isOpen, onClose, onSave, task = null, tags =
     category: 'personal',
     priority: 'medium',
     recurrence: 'one_time',
+    status: 'backlog',
     remind: false,
     tag_ids: [],
   });
@@ -93,6 +101,7 @@ export default function TaskModal({ isOpen, onClose, onSave, task = null, tags =
         category: task.category || 'personal',
         priority: task.priority || 'medium',
         recurrence: task.recurrence || 'one_time',
+        status: task.status || 'backlog',
         remind: task.remind || false,
         tag_ids: task.tags?.map(t => t.id) || [],
       });
@@ -108,6 +117,7 @@ export default function TaskModal({ isOpen, onClose, onSave, task = null, tags =
         category: 'personal',
         priority: 'medium',
         recurrence: 'one_time',
+        status: 'backlog',
         remind: false,
         tag_ids: [],
       });
@@ -300,6 +310,30 @@ export default function TaskModal({ isOpen, onClose, onSave, task = null, tags =
               ))}
             </div>
           </div>
+
+          {/* Status - only show when editing */}
+          {task && (
+            <div className="mb-4">
+              <label className="text-slate-400 text-sm mb-2 block">Status</label>
+              <div className="grid grid-cols-2 gap-2">
+                {STATUSES.map(s => (
+                  <button
+                    key={s.value}
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, status: s.value }))}
+                    className={`py-2 px-3 rounded-lg border transition-all flex items-center justify-center gap-2 ${
+                      formData.status === s.value
+                        ? `bg-slate-800 border-slate-600 ${s.color}`
+                        : 'bg-slate-800/50 border-slate-700 text-slate-400 hover:border-slate-600'
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-base">{s.icon}</span>
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Recurrence */}
           <div className="mb-4">
