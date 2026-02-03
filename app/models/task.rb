@@ -12,4 +12,17 @@ class Task < ApplicationRecord
   scope :for_date, ->(date) { where(scheduled_date: date) }
   scope :incomplete, -> { where.not(status: :done) }
   scope :carried_over, -> { where(carried_over: true) }
+
+  after_update :create_next_recurring_task, if: :just_completed?
+
+  private
+
+  def just_completed?
+    saved_change_to_status? && done?
+  end
+
+  def create_next_recurring_task
+    return if one_time?
+    RecurringTaskService.new(self).create_next_occurrence
+  end
 end
