@@ -4,17 +4,23 @@ import Header from '../components/Header';
 import ProgressCard from '../components/ProgressCard';
 import TaskSection from '../components/TaskSection';
 import FloatingAddButton from '../components/FloatingAddButton';
+import TaskModal from '../components/TaskModal';
 import { tasksApi } from '../api/tasks';
+import { tagsApi } from '../api/tags';
 
 export default function Today() {
   const [tasks, setTasks] = useState([]);
   const [carriedOver, setCarriedOver] = useState([]);
+  const [tags, setTags] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState(null);
 
   const today = format(new Date(), 'yyyy-MM-dd');
 
   useEffect(() => {
     loadTasks();
+    loadTags();
   }, []);
 
   const loadTasks = async () => {
@@ -29,6 +35,15 @@ export default function Today() {
     }
   };
 
+  const loadTags = async () => {
+    try {
+      const response = await tagsApi.getAll();
+      setTags(response.data || []);
+    } catch (error) {
+      console.error('Failed to load tags:', error);
+    }
+  };
+
   const handleToggle = async (id, newStatus) => {
     try {
       await tasksApi.update(id, { status: newStatus });
@@ -36,6 +51,36 @@ export default function Today() {
     } catch (error) {
       console.error('Failed to update task:', error);
     }
+  };
+
+  const handleTaskClick = (task) => {
+    setEditingTask(task);
+    setModalOpen(true);
+  };
+
+  const handleAddTask = () => {
+    setEditingTask(null);
+    setModalOpen(true);
+  };
+
+  const handleSaveTask = async (taskData) => {
+    try {
+      if (editingTask) {
+        await tasksApi.update(editingTask.id, taskData);
+      } else {
+        await tasksApi.create(taskData);
+      }
+      setModalOpen(false);
+      setEditingTask(null);
+      loadTasks();
+    } catch (error) {
+      console.error('Failed to save task:', error);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setModalOpen(false);
+    setEditingTask(null);
   };
 
   const allTasks = [...tasks, ...carriedOver];
@@ -61,6 +106,7 @@ export default function Today() {
           title="Carried Over from Yesterday"
           tasks={carriedOver}
           onToggle={handleToggle}
+          onTaskClick={handleTaskClick}
           isCarriedOver
         />
 
@@ -68,6 +114,7 @@ export default function Today() {
           title="Today's Tasks"
           tasks={tasks}
           onToggle={handleToggle}
+          onTaskClick={handleTaskClick}
         />
 
         {!loading && tasks.length === 0 && carriedOver.length === 0 && (
@@ -79,7 +126,15 @@ export default function Today() {
         )}
       </main>
 
-      <FloatingAddButton onClick={() => console.log('Add task - modal TODO')} />
+      <FloatingAddButton onClick={handleAddTask} />
+
+      <TaskModal
+        isOpen={modalOpen}
+        onClose={handleCloseModal}
+        onSave={handleSaveTask}
+        task={editingTask}
+        tags={tags}
+      />
     </>
   );
 }

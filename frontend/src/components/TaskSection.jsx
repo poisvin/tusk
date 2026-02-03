@@ -1,6 +1,6 @@
 import TaskItem from './TaskItem';
 
-export default function TaskSection({ title, tasks, onToggle, isCarriedOver }) {
+export default function TaskSection({ title, tasks, onToggle, onTaskClick, isCarriedOver }) {
   if (!tasks || tasks.length === 0) return null;
 
   return (
@@ -13,6 +13,7 @@ export default function TaskSection({ title, tasks, onToggle, isCarriedOver }) {
           key={task.id}
           task={task}
           onToggle={onToggle}
+          onTaskClick={onTaskClick}
           isCarriedOver={isCarriedOver}
         />
       ))}

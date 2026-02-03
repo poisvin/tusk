@@ -1,4 +1,4 @@
-export default function TaskItem({ task, onToggle, isCarriedOver }) {
+export default function TaskItem({ task, onToggle, onTaskClick, isCarriedOver }) {
   const isDone = task.status === 'done';
 
   const formatTime = (time) => {
@@ -17,14 +17,22 @@ export default function TaskItem({ task, onToggle, isCarriedOver }) {
     return task.description;
   };
 
+  const handleCheckboxClick = (e) => {
+    e.stopPropagation();
+    onToggle(task.id, isDone ? 'backlog' : 'done');
+  };
+
   return (
-    <div className="flex items-center gap-4 bg-background-dark px-4 min-h-[72px] py-2 justify-between border-b border-slate-800/50">
+    <div
+      className="flex items-center gap-4 bg-background-dark px-4 min-h-[72px] py-2 justify-between border-b border-slate-800/50 cursor-pointer hover:bg-slate-800/30 transition-colors"
+      onClick={() => onTaskClick && onTaskClick(task)}
+    >
       <div className="flex items-center gap-4">
-        <div className="flex size-7 items-center justify-center">
+        <div className="flex size-7 items-center justify-center" onClick={handleCheckboxClick}>
           <input
             type="checkbox"
             checked={isDone}
-            onChange={() => onToggle(task.id, isDone ? 'backlog' : 'done')}
+            onChange={() => {}}
             className="h-6 w-6 rounded border-[#324467] border-2 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0 focus:border-primary focus:outline-none transition-all cursor-pointer"
           />
         </div>
