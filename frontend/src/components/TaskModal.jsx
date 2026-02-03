@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
 
 const CATEGORIES = [
   { value: 'personal', label: 'Personal' },
@@ -19,10 +21,46 @@ const RECURRENCES = [
   { value: 'monthly', label: 'Monthly' },
 ];
 
+function MenuBar({ editor }) {
+  if (!editor) return null;
+
+  return (
+    <div className="flex flex-wrap gap-1 p-2 border-b border-slate-700 bg-slate-800/30">
+      <button
+        type="button"
+        onClick={() => editor.chain().focus().toggleBold().run()}
+        className={`p-1.5 rounded hover:bg-slate-700 ${editor.isActive('bold') ? 'bg-slate-700 text-primary' : 'text-slate-400'}`}
+      >
+        <span className="material-symbols-outlined text-base">format_bold</span>
+      </button>
+      <button
+        type="button"
+        onClick={() => editor.chain().focus().toggleItalic().run()}
+        className={`p-1.5 rounded hover:bg-slate-700 ${editor.isActive('italic') ? 'bg-slate-700 text-primary' : 'text-slate-400'}`}
+      >
+        <span className="material-symbols-outlined text-base">format_italic</span>
+      </button>
+      <button
+        type="button"
+        onClick={() => editor.chain().focus().toggleBulletList().run()}
+        className={`p-1.5 rounded hover:bg-slate-700 ${editor.isActive('bulletList') ? 'bg-slate-700 text-primary' : 'text-slate-400'}`}
+      >
+        <span className="material-symbols-outlined text-base">format_list_bulleted</span>
+      </button>
+      <button
+        type="button"
+        onClick={() => editor.chain().focus().toggleOrderedList().run()}
+        className={`p-1.5 rounded hover:bg-slate-700 ${editor.isActive('orderedList') ? 'bg-slate-700 text-primary' : 'text-slate-400'}`}
+      >
+        <span className="material-symbols-outlined text-base">format_list_numbered</span>
+      </button>
+    </div>
+  );
+}
+
 export default function TaskModal({ isOpen, onClose, onSave, task = null, tags = [] }) {
   const [formData, setFormData] = useState({
     title: '',
-    description: '',
     scheduled_date: format(new Date(), 'yyyy-MM-dd'),
     start_time: '',
     end_time: '',
@@ -35,11 +73,20 @@ export default function TaskModal({ isOpen, onClose, onSave, task = null, tags =
 
   const [errors, setErrors] = useState({});
 
+  const editor = useEditor({
+    extensions: [StarterKit],
+    content: '',
+    editorProps: {
+      attributes: {
+        class: 'prose prose-invert prose-sm max-w-none p-3 min-h-[80px] focus:outline-none text-white',
+      },
+    },
+  });
+
   useEffect(() => {
     if (task) {
       setFormData({
         title: task.title || '',
-        description: task.description || '',
         scheduled_date: task.scheduled_date || format(new Date(), 'yyyy-MM-dd'),
         start_time: task.start_time ? task.start_time.slice(11, 16) : '',
         end_time: task.end_time ? task.end_time.slice(11, 16) : '',
@@ -49,10 +96,12 @@ export default function TaskModal({ isOpen, onClose, onSave, task = null, tags =
         remind: task.remind || false,
         tag_ids: task.tags?.map(t => t.id) || [],
       });
+      if (editor) {
+        editor.commands.setContent(task.description || '');
+      }
     } else {
       setFormData({
         title: '',
-        description: '',
         scheduled_date: format(new Date(), 'yyyy-MM-dd'),
         start_time: '',
         end_time: '',
@@ -62,9 +111,12 @@ export default function TaskModal({ isOpen, onClose, onSave, task = null, tags =
         remind: false,
         tag_ids: [],
       });
+      if (editor) {
+        editor.commands.setContent('');
+      }
     }
     setErrors({});
-  }, [task, isOpen]);
+  }, [task, isOpen, editor]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -99,7 +151,10 @@ export default function TaskModal({ isOpen, onClose, onSave, task = null, tags =
       return;
     }
 
-    const submitData = { ...formData };
+    const submitData = {
+      ...formData,
+      description: editor?.getHTML() || '',
+    };
     if (submitData.start_time) {
       submitData.start_time = `${submitData.scheduled_date}T${submitData.start_time}:00`;
     } else {
@@ -159,16 +214,13 @@ export default function TaskModal({ isOpen, onClose, onSave, task = null, tags =
             )}
           </div>
 
-          {/* Description */}
+          {/* Description with Rich Text */}
           <div className="mb-4">
-            <textarea
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              placeholder="Description (optional)"
-              rows={3}
-              className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-primary resize-none"
-            />
+            <label className="text-slate-400 text-sm mb-2 block">Description (optional)</label>
+            <div className="bg-slate-800/50 border border-slate-700 rounded-lg overflow-hidden focus-within:border-primary">
+              <MenuBar editor={editor} />
+              <EditorContent editor={editor} />
+            </div>
           </div>
 
           {/* Date */}
