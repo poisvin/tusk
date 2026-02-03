@@ -85,7 +85,7 @@ export default function NoteModal({ isOpen, onClose, onSave, onDelete, note = nu
     content: '',
     editorProps: {
       attributes: {
-        class: 'prose prose-invert max-w-none p-4 min-h-[200px] focus:outline-none',
+        class: 'max-w-none p-4 min-h-[200px] focus:outline-none text-white',
       },
     },
   });

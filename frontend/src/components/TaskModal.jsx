@@ -78,7 +78,7 @@ export default function TaskModal({ isOpen, onClose, onSave, task = null, tags =
     content: '',
     editorProps: {
       attributes: {
-        class: 'prose prose-invert prose-sm max-w-none p-3 min-h-[80px] focus:outline-none text-white',
+        class: 'max-w-none p-3 min-h-[80px] focus:outline-none text-white',
       },
     },
   });
