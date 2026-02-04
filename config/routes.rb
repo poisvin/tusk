@@ -9,6 +9,7 @@ Rails.application.routes.draw do
       resources :notes do
         delete 'attachments/:attachment_id', to: 'notes#destroy_attachment', on: :member
       end
+      get 'stats/dashboard', to: 'stats#dashboard'
     end
   end
 

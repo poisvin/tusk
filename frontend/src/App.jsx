@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
 import DesktopLayout from './components/layouts/DesktopLayout';
 import Today from './pages/Today';
+import Tasks from './pages/Tasks';
 import Dashboard from './pages/Dashboard';
 import Calendar from './pages/Calendar';
 import Notes from './pages/Notes';
@@ -16,7 +17,7 @@ function AppRoutes() {
       <Routes>
         <Route path="/" element={<DesktopLayout />}>
           <Route index element={<Dashboard />} />
-          <Route path="today" element={<Dashboard showRightSidebar={false} />} />
+          <Route path="today" element={<Tasks />} />
           <Route path="calendar" element={<Calendar />} />
           <Route path="notes" element={<Notes />} />
           <Route path="settings" element={<Settings />} />

@@ -1,199 +1,220 @@
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import TaskItem from '../components/TaskItem';
-import TaskModal from '../components/TaskModal';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import RightSidebar from '../components/layouts/RightSidebar';
-import DailyProgress from '../components/widgets/DailyProgress';
+import { statsApi } from '../api/stats';
 import { tasksApi } from '../api/tasks';
-import { tagsApi } from '../api/tags';
+
+const StatCard = ({ icon, label, value, color, subtext }) => (
+  <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
+    <div className="flex items-center gap-3">
+      <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${color}`}>
+        <span className="material-symbols-outlined text-white">{icon}</span>
+      </div>
+      <div>
+        <p className="text-2xl font-bold text-white">{value}</p>
+        <p className="text-slate-400 text-sm">{label}</p>
+      </div>
+    </div>
+    {subtext && <p className="text-slate-500 text-xs mt-2">{subtext}</p>}
+  </div>
+);
+
+const CustomTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-slate-800 border border-slate-700 rounded-lg p-3 shadow-lg">
+        <p className="text-white font-medium mb-1">{label}</p>
+        {payload.map((entry, index) => (
+          <p key={index} className="text-sm" style={{ color: entry.color }}>
+            {entry.name}: {entry.value}
+          </p>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
 
 export default function Dashboard({ showRightSidebar = true }) {
+  const [stats, setStats] = useState(null);
   const [tasks, setTasks] = useState([]);
-  const [carriedOver, setCarriedOver] = useState([]);
-  const [tags, setTags] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editingTask, setEditingTask] = useState(null);
 
   const today = format(new Date(), 'yyyy-MM-dd');
-  const todayFormatted = format(new Date(), 'EEEE, MMMM d');
 
   useEffect(() => {
-    loadTasks();
-    loadTags();
+    loadData();
   }, []);
 
-  const loadTasks = async () => {
+  const loadData = async () => {
     try {
-      const response = await tasksApi.getForDate(today);
-      setTasks(response.data.tasks || []);
-      setCarriedOver(response.data.carried_over || []);
+      const [statsResponse, tasksResponse] = await Promise.all([
+        statsApi.getDashboard(),
+        tasksApi.getForDate(today)
+      ]);
+      setStats(statsResponse.data);
+      const allTasks = [...(tasksResponse.data.tasks || []), ...(tasksResponse.data.carried_over || [])];
+      setTasks(allTasks);
     } catch (error) {
-      console.error('Failed to load tasks:', error);
+      console.error('Failed to load dashboard data:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const loadTags = async () => {
-    try {
-      const response = await tagsApi.getAll();
-      setTags(response.data || []);
-    } catch (error) {
-      console.error('Failed to load tags:', error);
-    }
-  };
+  const weekStart = format(new Date().getDay() === 0 ? new Date(Date.now() - 6 * 24 * 60 * 60 * 1000) : new Date(Date.now() - (new Date().getDay() - 1) * 24 * 60 * 60 * 1000), 'MMM d');
+  const weekEnd = format(new Date(), 'MMM d, yyyy');
 
-  const handleToggle = async (id, newStatus) => {
-    try {
-      await tasksApi.update(id, { status: newStatus });
-      loadTasks();
-    } catch (error) {
-      console.error('Failed to update task:', error);
-    }
-  };
+  if (loading) {
+    return (
+      <div className="flex h-full">
+        <div className="flex-1 p-6 flex items-center justify-center">
+          <div className="text-slate-400">Loading dashboard...</div>
+        </div>
+      </div>
+    );
+  }
 
-  const handleTaskClick = (task) => {
-    setEditingTask(task);
-    setModalOpen(true);
-  };
-
-  const handleAddTask = () => {
-    setEditingTask(null);
-    setModalOpen(true);
-  };
-
-  const handleSaveTask = async (taskData) => {
-    try {
-      if (editingTask) {
-        await tasksApi.update(editingTask.id, taskData);
-      } else {
-        await tasksApi.create(taskData);
-      }
-      setModalOpen(false);
-      setEditingTask(null);
-      loadTasks();
-    } catch (error) {
-      console.error('Failed to save task:', error);
-    }
-  };
-
-  const handleCloseModal = () => {
-    setModalOpen(false);
-    setEditingTask(null);
-  };
-
-  const handleDeleteTask = async (id) => {
-    try {
-      await tasksApi.delete(id);
-      setModalOpen(false);
-      setEditingTask(null);
-      loadTasks();
-    } catch (error) {
-      console.error('Failed to delete task:', error);
-    }
-  };
-
-  const allTasks = [...tasks, ...carriedOver];
-  const totalCount = allTasks.length;
+  const weeklyStats = stats?.weekly_stats || {};
 
   return (
     <div className="flex h-full">
       <div className="flex-1 p-6 overflow-y-auto">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-white mb-1">Today's Focus</h1>
+          <h1 className="text-2xl font-bold text-white mb-1">Dashboard</h1>
           <p className="text-slate-400">
-            {totalCount} task{totalCount !== 1 ? 's' : ''} scheduled for today
+            Weekly overview for {weekStart} - {weekEnd}
           </p>
         </div>
 
-        {/* Daily Progress - shown inline on Tasks page */}
-        {!showRightSidebar && (
-          <div className="mb-6">
-            <DailyProgress tasks={allTasks} />
+        {/* Weekly Stats Grid */}
+        <div className="mb-8">
+          <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+            <span className="material-symbols-outlined text-primary">bar_chart</span>
+            This Week
+          </h2>
+          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+            <StatCard
+              icon="assignment"
+              label="Total Tasks"
+              value={weeklyStats.total || 0}
+              color="bg-blue-500"
+            />
+            <StatCard
+              icon="check_circle"
+              label="Completed"
+              value={weeklyStats.completed || 0}
+              color="bg-green-500"
+            />
+            <StatCard
+              icon="play_circle"
+              label="In Progress"
+              value={weeklyStats.in_progress || 0}
+              color="bg-cyan-500"
+            />
+            <StatCard
+              icon="history"
+              label="Carried Over"
+              value={weeklyStats.carried_over || 0}
+              color="bg-orange-500"
+            />
+            <StatCard
+              icon="block"
+              label="Blocked"
+              value={weeklyStats.blocked || 0}
+              color="bg-red-500"
+            />
+            <StatCard
+              icon="pending"
+              label="Pending"
+              value={weeklyStats.pending || 0}
+              color="bg-slate-500"
+            />
           </div>
-        )}
-
-        {/* Carried Over Section */}
-        {carriedOver.length > 0 && (
-          <div className="mb-6">
-            <div className="flex items-center gap-2 mb-3">
-              <span className="material-symbols-outlined text-orange-400">history</span>
-              <h2 className="text-lg font-semibold text-orange-400">Carried Over</h2>
-              <span className="bg-orange-400/20 text-orange-400 text-xs px-2 py-0.5 rounded-full">
-                {carriedOver.length}
-              </span>
-            </div>
-            <div className="bg-slate-800/30 rounded-xl overflow-hidden border border-orange-400/20">
-              {carriedOver.map((task) => (
-                <TaskItem
-                  key={task.id}
-                  task={task}
-                  onToggle={handleToggle}
-                  onTaskClick={handleTaskClick}
-                  isCarriedOver
-                />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Today's Schedule Section */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary">calendar_today</span>
-              <h2 className="text-lg font-semibold text-white">{todayFormatted}</h2>
-            </div>
-            <button
-              onClick={handleAddTask}
-              className="flex items-center gap-1.5 text-primary hover:text-blue-400 transition-colors text-sm font-medium"
-            >
-              <span className="material-symbols-outlined text-lg">add</span>
-              Add task
-            </button>
-          </div>
-
-          {tasks.length > 0 ? (
-            <div className="bg-slate-800/30 rounded-xl overflow-hidden border border-slate-700">
-              {tasks.map((task) => (
-                <TaskItem
-                  key={task.id}
-                  task={task}
-                  onToggle={handleToggle}
-                  onTaskClick={handleTaskClick}
-                />
-              ))}
-            </div>
-          ) : !loading && carriedOver.length === 0 ? (
-            <div className="bg-slate-800/30 rounded-xl border border-slate-700 p-12 text-center">
-              <span className="material-symbols-outlined text-5xl text-slate-600 mb-3 block">task_alt</span>
-              <p className="text-slate-400 mb-2">No tasks scheduled for today</p>
-              <button
-                onClick={handleAddTask}
-                className="text-primary hover:text-blue-400 transition-colors text-sm font-medium"
-              >
-                + Add your first task
-              </button>
-            </div>
-          ) : !loading && (
-            <div className="bg-slate-800/30 rounded-xl border border-slate-700 p-8 text-center">
-              <p className="text-slate-500">No additional tasks for today</p>
-            </div>
-          )}
         </div>
 
-        <TaskModal
-          isOpen={modalOpen}
-          onClose={handleCloseModal}
-          onSave={handleSaveTask}
-          onDelete={handleDeleteTask}
-          task={editingTask}
-          tags={tags}
-        />
+        {/* Notes Created */}
+        <div className="mb-8">
+          <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700 inline-flex items-center gap-4">
+            <div className="w-12 h-12 rounded-lg bg-purple-500 flex items-center justify-center">
+              <span className="material-symbols-outlined text-white text-2xl">description</span>
+            </div>
+            <div>
+              <p className="text-3xl font-bold text-white">{stats?.weekly_notes || 0}</p>
+              <p className="text-slate-400">Notes created this week</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Monthly Chart */}
+        <div className="mb-6">
+          <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+            <span className="material-symbols-outlined text-primary">trending_up</span>
+            Monthly Activity
+          </h2>
+          <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
+            <div className="h-72">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart
+                  data={stats?.monthly_data || []}
+                  margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+                >
+                  <defs>
+                    <linearGradient id="colorCreated" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                    </linearGradient>
+                    <linearGradient id="colorCompleted" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#22c55e" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                  <XAxis
+                    dataKey="label"
+                    stroke="#64748b"
+                    tick={{ fill: '#64748b', fontSize: 12 }}
+                    tickLine={{ stroke: '#334155' }}
+                    interval="preserveStartEnd"
+                  />
+                  <YAxis
+                    stroke="#64748b"
+                    tick={{ fill: '#64748b', fontSize: 12 }}
+                    tickLine={{ stroke: '#334155' }}
+                    allowDecimals={false}
+                  />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend
+                    wrapperStyle={{ paddingTop: '10px' }}
+                    formatter={(value) => <span className="text-slate-300">{value}</span>}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="created"
+                    name="Tasks Created"
+                    stroke="#3b82f6"
+                    fillOpacity={1}
+                    fill="url(#colorCreated)"
+                    strokeWidth={2}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="completed"
+                    name="Tasks Completed"
+                    stroke="#22c55e"
+                    fillOpacity={1}
+                    fill="url(#colorCompleted)"
+                    strokeWidth={2}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
       </div>
-      {showRightSidebar && <RightSidebar tasks={allTasks} />}
+      {showRightSidebar && <RightSidebar tasks={tasks} />}
     </div>
   );
 }
