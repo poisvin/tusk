@@ -39,6 +39,7 @@ const STATUSES = [
   { value: 'backlog', label: 'Backlog', icon: 'inbox', color: 'text-slate-400' },
   { value: 'in_progress', label: 'In Progress', icon: 'play_circle', color: 'text-blue-400' },
   { value: 'partial', label: 'Partial', icon: 'timelapse', color: 'text-orange-400' },
+  { value: 'blocked', label: 'Blocked', icon: 'block', color: 'text-red-400' },
   { value: 'done', label: 'Done', icon: 'check_circle', color: 'text-green-400' },
 ];
 
@@ -410,23 +411,16 @@ export default function TaskModal({ isOpen, onClose, onSave, onDelete, task = nu
           {task && (
             <div className="mb-4">
               <label className="text-slate-400 text-sm mb-2 block">Status</label>
-              <div className="grid grid-cols-2 gap-2">
+              <select
+                name="status"
+                value={formData.status}
+                onChange={handleChange}
+                className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-primary"
+              >
                 {STATUSES.map(s => (
-                  <button
-                    key={s.value}
-                    type="button"
-                    onClick={() => setFormData(prev => ({ ...prev, status: s.value }))}
-                    className={`py-2 px-3 rounded-lg border transition-all flex items-center justify-center gap-2 ${
-                      formData.status === s.value
-                        ? `bg-slate-800 border-slate-600 ${s.color}`
-                        : 'bg-slate-800/50 border-slate-700 text-slate-400 hover:border-slate-600'
-                    }`}
-                  >
-                    <span className="material-symbols-outlined text-base">{s.icon}</span>
-                    {s.label}
-                  </button>
+                  <option key={s.value} value={s.value}>{s.label}</option>
                 ))}
-              </div>
+              </select>
             </div>
           )}
 

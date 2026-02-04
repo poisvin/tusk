@@ -3,6 +3,7 @@ const STATUS_STYLES = {
   in_progress: { icon: 'play_circle', color: 'text-blue-400' },
   partial: { icon: 'timelapse', color: 'text-orange-400' },
   done: { icon: 'check_circle', color: 'text-green-400' },
+  blocked: { icon: 'block', color: 'text-red-400' },
 };
 
 export default function TaskItem({ task, onToggle, onTaskClick, isCarriedOver }) {
@@ -65,7 +66,7 @@ export default function TaskItem({ task, onToggle, onTaskClick, isCarriedOver })
     <div
       className={`flex items-center gap-4 bg-background-dark px-4 min-h-[72px] py-2 justify-between border-b border-slate-800/50 cursor-pointer hover:bg-slate-800/30 transition-colors ${
         task.status === 'in_progress' ? 'border-l-2 border-l-blue-400' : ''
-      } ${task.status === 'partial' ? 'border-l-2 border-l-orange-400' : ''}`}
+      } ${task.status === 'partial' ? 'border-l-2 border-l-orange-400' : ''} ${task.status === 'blocked' ? 'border-l-2 border-l-red-400' : ''}`}
       onClick={() => onTaskClick && onTaskClick(task)}
     >
       <div className="flex items-center gap-4">
