@@ -48,7 +48,7 @@ module Api
         params.require(:task).permit(
           :title, :description, :scheduled_date, :start_time, :end_time,
           :status, :priority, :category, :recurrence, :remind, :carried_over,
-          :original_date, tag_ids: []
+          :original_date, tag_ids: [], weekly_days: []
         )
       end
     end

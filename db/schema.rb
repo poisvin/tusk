@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_02_03_115043) do
+ActiveRecord::Schema[7.1].define(version: 2026_02_03_145024) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -54,6 +54,9 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_03_115043) do
     t.date "original_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "recurrence_parent_id"
+    t.string "weekly_days", default: [], array: true
+    t.index ["recurrence_parent_id"], name: "index_tasks_on_recurrence_parent_id"
   end
 
 end

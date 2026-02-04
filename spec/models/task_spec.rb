@@ -10,11 +10,13 @@ RSpec.describe Task, type: :model do
     it { should define_enum_for(:status).with_values(backlog: 0, in_progress: 1, partial: 2, done: 3) }
     it { should define_enum_for(:priority).with_values(low: 0, medium: 1, high: 2) }
     it { should define_enum_for(:category).with_values(personal: 0, official: 1) }
-    it { should define_enum_for(:recurrence).with_values(one_time: 0, daily: 1, weekly: 2, monthly: 3) }
+    it { should define_enum_for(:recurrence).with_values(one_time: 0, daily: 1, weekly: 2, monthly: 3, weekdays: 4, weekends: 5) }
   end
 
   describe 'associations' do
     it { should have_and_belong_to_many(:tags) }
+    it { should belong_to(:recurrence_parent).class_name('Task').optional }
+    it { should have_many(:recurrence_children).class_name('Task').with_foreign_key('recurrence_parent_id').dependent(:destroy) }
   end
 
   describe 'scopes' do

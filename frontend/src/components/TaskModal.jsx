@@ -17,8 +17,20 @@ const PRIORITIES = [
 const RECURRENCES = [
   { value: 'one_time', label: 'One time' },
   { value: 'daily', label: 'Daily' },
+  { value: 'weekdays', label: 'Weekdays' },
+  { value: 'weekends', label: 'Weekends' },
   { value: 'weekly', label: 'Weekly' },
   { value: 'monthly', label: 'Monthly' },
+];
+
+const WEEK_DAYS = [
+  { value: 'sunday', label: 'Sun' },
+  { value: 'monday', label: 'Mon' },
+  { value: 'tuesday', label: 'Tue' },
+  { value: 'wednesday', label: 'Wed' },
+  { value: 'thursday', label: 'Thu' },
+  { value: 'friday', label: 'Fri' },
+  { value: 'saturday', label: 'Sat' },
 ];
 
 const STATUSES = [
@@ -74,6 +86,7 @@ export default function TaskModal({ isOpen, onClose, onSave, onDelete, task = nu
     category: 'personal',
     priority: 'medium',
     recurrence: 'one_time',
+    weekly_days: [],
     status: 'backlog',
     remind: false,
     tag_ids: [],
@@ -101,6 +114,7 @@ export default function TaskModal({ isOpen, onClose, onSave, onDelete, task = nu
         category: task.category || 'personal',
         priority: task.priority || 'medium',
         recurrence: task.recurrence || 'one_time',
+        weekly_days: task.weekly_days || [],
         status: task.status || 'backlog',
         remind: task.remind || false,
         tag_ids: task.tags?.map(t => t.id) || [],
@@ -117,6 +131,7 @@ export default function TaskModal({ isOpen, onClose, onSave, onDelete, task = nu
         category: 'personal',
         priority: 'medium',
         recurrence: 'one_time',
+        weekly_days: [],
         status: 'backlog',
         remind: false,
         tag_ids: [],
@@ -127,6 +142,15 @@ export default function TaskModal({ isOpen, onClose, onSave, onDelete, task = nu
     }
     setErrors({});
   }, [task, isOpen, editor]);
+
+  const handleWeekDayToggle = (day) => {
+    setFormData(prev => ({
+      ...prev,
+      weekly_days: prev.weekly_days.includes(day)
+        ? prev.weekly_days.filter(d => d !== day)
+        : [...prev.weekly_days, day],
+    }));
+  };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -349,6 +373,32 @@ export default function TaskModal({ isOpen, onClose, onSave, onDelete, task = nu
               ))}
             </select>
           </div>
+
+          {/* Weekly Days Selector - only show when weekly is selected */}
+          {formData.recurrence === 'weekly' && (
+            <div className="mb-4">
+              <label className="text-slate-400 text-sm mb-2 block">On which days?</label>
+              <div className="flex gap-1">
+                {WEEK_DAYS.map(day => (
+                  <button
+                    key={day.value}
+                    type="button"
+                    onClick={() => handleWeekDayToggle(day.value)}
+                    className={`flex-1 py-2 px-1 rounded-lg border text-xs font-medium transition-all ${
+                      formData.weekly_days.includes(day.value)
+                        ? 'bg-primary/20 border-primary text-primary'
+                        : 'bg-slate-800/50 border-slate-700 text-slate-400 hover:border-slate-600'
+                    }`}
+                  >
+                    {day.label}
+                  </button>
+                ))}
+              </div>
+              {formData.weekly_days.length === 0 && (
+                <p className="text-slate-500 text-xs mt-1">Select at least one day (defaults to same day each week)</p>
+              )}
+            </div>
+          )}
 
           {/* Tags */}
           {tags.length > 0 && (
