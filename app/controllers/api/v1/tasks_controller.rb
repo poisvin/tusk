@@ -4,8 +4,8 @@ module Api
       def index
         date = params[:date] ? Date.parse(params[:date]) : Date.today
 
-        tasks = Task.for_date(date).where(carried_over: [false, nil]).includes(:tags)
-        carried_over = Task.for_date(date).carried_over.includes(:tags)
+        tasks = Task.for_date(date).where(carried_over: [false, nil]).includes(:tags, :task_updates, :notes)
+        carried_over = Task.for_date(date).carried_over.includes(:tags, :task_updates, :notes)
 
         render json: {
           tasks: TaskBlueprint.render_as_hash(tasks),
@@ -14,7 +14,7 @@ module Api
       end
 
       def show
-        task = Task.find(params[:id])
+        task = Task.includes(:tags, :task_updates, :notes).find(params[:id])
         render json: TaskBlueprint.render(task)
       end
 

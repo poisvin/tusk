@@ -6,4 +6,6 @@ class TaskBlueprint < Blueprinter::Base
          :original_date, :weekly_days, :recurrence_parent_id, :created_at, :updated_at
 
   association :tags, blueprint: TagBlueprint
+  association :task_updates, blueprint: TaskUpdateBlueprint
+  association :notes, blueprint: NoteBlueprint, name: :linked_notes
 end

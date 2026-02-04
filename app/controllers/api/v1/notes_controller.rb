@@ -2,13 +2,13 @@ module Api
   module V1
     class NotesController < ApplicationController
       def index
-        notes = Note.includes(:tags).order(updated_at: :desc)
+        notes = Note.includes(:tags, :tasks).order(updated_at: :desc)
         notes = notes.where(category: params[:category]) if params[:category].present?
         render json: NoteBlueprint.render(notes)
       end
 
       def show
-        note = Note.find(params[:id])
+        note = Note.includes(:tags, :tasks).find(params[:id])
         render json: NoteBlueprint.render(note)
       end
 
