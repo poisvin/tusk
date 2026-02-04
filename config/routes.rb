@@ -6,7 +6,9 @@ Rails.application.routes.draw do
         resources :linked_notes, only: [:create, :destroy]
       end
       resources :tags, except: [:show]
-      resources :notes
+      resources :notes do
+        delete 'attachments/:attachment_id', to: 'notes#destroy_attachment', on: :member
+      end
     end
   end
 
