@@ -5,6 +5,7 @@ class Task < ApplicationRecord
   belongs_to :recurrence_parent, class_name: 'Task', optional: true
   has_many :recurrence_children, class_name: 'Task', foreign_key: 'recurrence_parent_id', dependent: :destroy
   has_many :task_updates, dependent: :destroy
+  has_and_belongs_to_many :notes
 
   validates :title, presence: true
   validates :scheduled_date, presence: true
