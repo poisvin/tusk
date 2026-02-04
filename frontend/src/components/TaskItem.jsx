@@ -7,8 +7,6 @@ const STATUS_STYLES = {
 
 export default function TaskItem({ task, onToggle, onTaskClick, isCarriedOver }) {
   const isDone = task.status === 'done';
-  const isInProgress = task.status === 'in_progress';
-  const isPartial = task.status === 'partial';
 
   const formatTime = (time) => {
     if (!time) return null;
@@ -55,54 +53,19 @@ export default function TaskItem({ task, onToggle, onTaskClick, isCarriedOver })
       );
     }
 
-    if (isInProgress) {
-      return (
-        <div className="text-blue-400 flex size-7 items-center justify-center" title="In Progress">
-          <span className="material-symbols-outlined">play_circle</span>
-        </div>
-      );
-    }
-
-    if (isPartial) {
-      return (
-        <div className="text-orange-400 flex size-7 items-center justify-center" title="Partial">
-          <span className="material-symbols-outlined">timelapse</span>
-        </div>
-      );
-    }
-
-    if (isDone) {
-      return (
-        <div className="text-green-400 flex size-7 items-center justify-center" title="Done">
-          <span className="material-symbols-outlined">check_circle</span>
-        </div>
-      );
-    }
-
-    if (task.remind) {
-      return (
-        <div className="text-primary flex size-7 items-center justify-center" title="Reminder set">
-          <span className="material-symbols-outlined">notifications_active</span>
-        </div>
-      );
-    }
-
-    if (task.priority === 'high') {
-      return (
-        <div className="text-red-500 flex size-7 items-center justify-center" title="High priority">
-          <span className="material-symbols-outlined">priority_high</span>
-        </div>
-      );
-    }
-
-    return null;
+    const status = STATUS_STYLES[task.status] || STATUS_STYLES.backlog;
+    return (
+      <div className={`${status.color} flex size-7 items-center justify-center`} title={task.status.replace('_', ' ')}>
+        <span className="material-symbols-outlined">{status.icon}</span>
+      </div>
+    );
   };
 
   return (
     <div
       className={`flex items-center gap-4 bg-background-dark px-4 min-h-[72px] py-2 justify-between border-b border-slate-800/50 cursor-pointer hover:bg-slate-800/30 transition-colors ${
-        isInProgress ? 'border-l-2 border-l-blue-400' : ''
-      } ${isPartial ? 'border-l-2 border-l-orange-400' : ''}`}
+        task.status === 'in_progress' ? 'border-l-2 border-l-blue-400' : ''
+      } ${task.status === 'partial' ? 'border-l-2 border-l-orange-400' : ''}`}
       onClick={() => onTaskClick && onTaskClick(task)}
     >
       <div className="flex items-center gap-4">
