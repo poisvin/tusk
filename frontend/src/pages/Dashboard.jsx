@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import TaskItem from '../components/TaskItem';
 import TaskModal from '../components/TaskModal';
 import RightSidebar from '../components/layouts/RightSidebar';
+import DailyProgress from '../components/widgets/DailyProgress';
 import { tasksApi } from '../api/tasks';
 import { tagsApi } from '../api/tags';
 
@@ -106,6 +107,13 @@ export default function Dashboard({ showRightSidebar = true }) {
             {totalCount} task{totalCount !== 1 ? 's' : ''} scheduled for today
           </p>
         </div>
+
+        {/* Daily Progress - shown inline on Tasks page */}
+        {!showRightSidebar && (
+          <div className="mb-6">
+            <DailyProgress tasks={allTasks} />
+          </div>
+        )}
 
         {/* Carried Over Section */}
         {carriedOver.length > 0 && (
