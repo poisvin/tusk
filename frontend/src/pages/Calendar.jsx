@@ -294,13 +294,15 @@ export default function Calendar() {
                         {priority.label}
                       </span>
                     </div>
-                    <p className={`text-sm mt-1 ${isDone ? 'text-slate-500' : 'text-[#92a4c9]'}`}>
-                      {task.start_time && task.end_time
-                        ? `${formatTime(task.start_time)} - ${formatTime(task.end_time)}`
-                        : isDone
-                        ? 'Completed'
-                        : task.description || 'No time set'}
-                    </p>
+                    {(task.start_time || isDone) && (
+                      <p className={`text-sm mt-1 ${isDone ? 'text-slate-500' : 'text-[#92a4c9]'}`}>
+                        {task.start_time && task.end_time
+                          ? `${formatTime(task.start_time)} - ${formatTime(task.end_time)}`
+                          : task.start_time
+                          ? formatTime(task.start_time)
+                          : 'Completed'}
+                      </p>
+                    )}
                   </div>
                 );
               })

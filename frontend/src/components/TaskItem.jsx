@@ -30,7 +30,7 @@ export default function TaskItem({ task, onToggle, onTaskClick, isCarriedOver })
     if (task.start_time) {
       return formatTime(task.start_time);
     }
-    return task.description;
+    return null;
   };
 
   const handleCheckboxClick = (e) => {
@@ -81,9 +81,11 @@ export default function TaskItem({ task, onToggle, onTaskClick, isCarriedOver })
           <p className={`text-base font-medium leading-normal line-clamp-1 ${isDone ? 'text-slate-500 line-through' : 'text-white'}`}>
             {task.title}
           </p>
-          <p className={`text-sm font-normal leading-normal line-clamp-2 ${isDone ? 'text-slate-600' : 'text-[#92a4c9]'}`}>
-            {getTimeDisplay()}
-          </p>
+          {getTimeDisplay() && (
+            <p className={`text-sm font-normal leading-normal line-clamp-2 ${isDone ? 'text-slate-600' : 'text-[#92a4c9]'}`}>
+              {getTimeDisplay()}
+            </p>
+          )}
         </div>
       </div>
       <div className="shrink-0">
