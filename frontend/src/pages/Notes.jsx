@@ -65,12 +65,12 @@ export default function Notes() {
     setModalOpen(true);
   };
 
-  const handleSaveNote = async (noteData) => {
+  const handleSaveNote = async (noteData, files = []) => {
     try {
       if (editingNote) {
-        await notesApi.update(editingNote.id, noteData);
+        await notesApi.update(editingNote.id, noteData, files);
       } else {
-        await notesApi.create(noteData);
+        await notesApi.create(noteData, files);
       }
       setModalOpen(false);
       setEditingNote(null);
