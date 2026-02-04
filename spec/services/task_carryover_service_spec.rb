@@ -30,17 +30,33 @@ RSpec.describe TaskCarryoverService do
       expect(done_task.carried_over).to be false
     end
 
-    it 'does not re-carry already carried tasks' do
+    it 'carries over already carried tasks that are still incomplete' do
       already_carried = create(:task,
         scheduled_date: Date.yesterday,
         carried_over: true,
-        original_date: 2.days.ago
+        original_date: 2.days.ago.to_date,
+        status: :backlog
       )
 
       TaskCarryoverService.process(Date.today)
 
       already_carried.reload
-      expect(already_carried.scheduled_date).to eq(Date.yesterday)
+      expect(already_carried.scheduled_date).to eq(Date.today)
+      expect(already_carried.original_date).to eq(2.days.ago.to_date)
+    end
+
+    it 'does not carry over recurring tasks' do
+      recurring_task = create(:task,
+        scheduled_date: Date.yesterday,
+        status: :backlog,
+        recurrence: :daily
+      )
+
+      TaskCarryoverService.process(Date.today)
+
+      recurring_task.reload
+      expect(recurring_task.scheduled_date).to eq(Date.yesterday)
+      expect(recurring_task.carried_over).to be false
     end
 
     it 'preserves original_date when carrying over multiple times' do
@@ -54,12 +70,12 @@ RSpec.describe TaskCarryoverService do
       old_task.reload
       first_original = old_task.original_date
 
-      # Simulate another carryover
-      old_task.update!(carried_over: false)
+      # Carry over again (task is still incomplete)
       TaskCarryoverService.process(Date.yesterday)
       old_task.reload
 
       expect(old_task.original_date).to eq(first_original)
+      expect(old_task.scheduled_date).to eq(Date.yesterday)
     end
   end
 end
