@@ -80,13 +80,40 @@ RSpec.describe RecurringTaskService do
         Task.where.not(id: task.id).delete_all
       end
 
-      it 'creates 1 occurrence for next month' do
+      it 'creates 12 occurrences for the next year' do
         service = described_class.new(task)
         service.generate_month_ahead
 
         child_tasks = Task.where(recurrence_parent_id: task.id)
-        expect(child_tasks.count).to eq(1)
+        expect(child_tasks.count).to eq(12)
         expect(child_tasks.first.scheduled_date).to eq(scheduled_date + 1.month)
+        expect(child_tasks.last.scheduled_date).to eq(scheduled_date + 12.months)
+      end
+    end
+
+    context 'with a weekly recurring task with specific days' do
+      let(:task) do
+        task = build(:task, recurrence: :weekly, scheduled_date: scheduled_date, weekly_days: ['monday', 'wednesday', 'friday'])
+        task.save(validate: false)
+        Task.find(task.id)
+      end
+
+      before do
+        Task.where.not(id: task.id).delete_all
+      end
+
+      it 'creates occurrences for selected days each week' do
+        service = described_class.new(task)
+        service.generate_month_ahead
+
+        child_tasks = Task.where(recurrence_parent_id: task.id)
+        # 4 weeks * 3 days = ~12 occurrences (may vary based on start date)
+        expect(child_tasks.count).to be_within(4).of(12)
+
+        # Verify all are Monday(1), Wednesday(3), or Friday(5)
+        child_tasks.each do |t|
+          expect([1, 3, 5]).to include(t.scheduled_date.wday)
+        end
       end
     end
 
@@ -184,6 +211,34 @@ RSpec.describe RecurringTaskService do
           expect(child.tags).to include(tag)
         end
       end
+    end
+  end
+
+  describe '#regenerate_series' do
+    let(:scheduled_date) { Date.today }
+
+    it 'deletes future incomplete children and regenerates' do
+      task = build(:task, recurrence: :daily, scheduled_date: scheduled_date)
+      task.save(validate: false)
+      Task.where.not(id: task.id).delete_all
+
+      # Generate initial series
+      service = described_class.new(task)
+      service.generate_month_ahead
+
+      initial_count = Task.where(recurrence_parent_id: task.id).count
+      expect(initial_count).to be > 0
+
+      # Mark one as done (should not be deleted)
+      done_task = Task.where(recurrence_parent_id: task.id).first
+      done_task.update_columns(status: Task.statuses[:done])
+
+      # Regenerate
+      service.regenerate_series
+
+      # Should have same count (minus the done one that wasn't deleted, plus regenerated)
+      expect(Task.where(recurrence_parent_id: task.id).count).to be >= initial_count
+      expect(Task.find(done_task.id).status).to eq('done')
     end
   end
 

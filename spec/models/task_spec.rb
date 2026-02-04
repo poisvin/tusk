@@ -39,4 +39,63 @@ RSpec.describe Task, type: :model do
       expect(Task.carried_over).not_to include(today_task)
     end
   end
+
+  describe 'recurring task sync' do
+    let(:parent_task) { create(:task, recurrence: :daily, scheduled_date: Date.today) }
+
+    it 'syncs time changes from parent to future children' do
+      # Get a future child
+      child = Task.where(recurrence_parent_id: parent_task.id).where('scheduled_date > ?', Date.today).first
+
+      # Update parent's time
+      parent_task.update!(start_time: '09:00', end_time: '10:00')
+
+      child.reload
+      expect(child.start_time.strftime('%H:%M')).to eq('09:00')
+      expect(child.end_time.strftime('%H:%M')).to eq('10:00')
+    end
+
+    it 'syncs time changes from child to parent and siblings' do
+      children = Task.where(recurrence_parent_id: parent_task.id).where('scheduled_date > ?', Date.today).order(:scheduled_date).limit(3)
+      first_child = children.first
+      second_child = children.second
+
+      # Update child's time
+      first_child.update!(start_time: '14:00', end_time: '15:00')
+
+      parent_task.reload
+      second_child.reload
+
+      expect(parent_task.start_time.strftime('%H:%M')).to eq('14:00')
+      expect(second_child.start_time.strftime('%H:%M')).to eq('14:00')
+    end
+
+    it 'regenerates series when recurrence type changes' do
+      initial_children_count = Task.where(recurrence_parent_id: parent_task.id).count
+
+      # Change from daily to weekends (fewer occurrences)
+      parent_task.update!(recurrence: :weekends)
+
+      # Should have regenerated with fewer tasks
+      new_children_count = Task.where(recurrence_parent_id: parent_task.id).count
+      expect(new_children_count).to be < initial_children_count
+
+      # All new children should be on weekends
+      Task.where(recurrence_parent_id: parent_task.id).each do |child|
+        expect([0, 6]).to include(child.scheduled_date.wday)
+      end
+    end
+
+    it 'does not change status when syncing' do
+      child = Task.where(recurrence_parent_id: parent_task.id).first
+      child.update_columns(status: Task.statuses[:done])
+
+      # Update parent's title (should sync but not change status)
+      parent_task.update!(title: 'Updated Title')
+
+      child.reload
+      expect(child.title).to eq('Updated Title')
+      expect(child.status).to eq('done')
+    end
+  end
 end
