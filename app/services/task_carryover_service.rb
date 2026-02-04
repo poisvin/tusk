@@ -21,8 +21,9 @@ class TaskCarryoverService
 
   def incomplete_tasks
     # Only carry over one-time tasks, not recurring ones
+    # Exclude done and closed tasks
     Task.where(scheduled_date: ...@target_date)
-        .where.not(status: :done)
+        .where.not(status: [:done, :closed])
         .where(recurrence: :one_time)
   end
 end
