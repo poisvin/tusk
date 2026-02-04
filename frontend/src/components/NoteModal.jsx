@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
+import { format } from 'date-fns';
+import { notesApi } from '../api/notes';
+import { tasksApi } from '../api/tasks';
 
 const CATEGORIES = [
   { value: 'personal', label: 'Personal', icon: 'person' },
@@ -79,6 +82,9 @@ export default function NoteModal({ isOpen, onClose, onSave, onDelete, note = nu
   const [category, setCategory] = useState('personal');
   const [tagIds, setTagIds] = useState([]);
   const [errors, setErrors] = useState({});
+  const [linkedTasks, setLinkedTasks] = useState([]);
+  const [availableTasks, setAvailableTasks] = useState([]);
+  const [showTaskPicker, setShowTaskPicker] = useState(false);
 
   const editor = useEditor({
     extensions: [StarterKit],
@@ -108,6 +114,23 @@ export default function NoteModal({ isOpen, onClose, onSave, onDelete, note = nu
     }
     setErrors({});
   }, [note, isOpen, editor]);
+
+  useEffect(() => {
+    if (note?.id && isOpen) {
+      notesApi.get(note.id).then(response => {
+        const data = response.data;
+        setLinkedTasks(data.linked_tasks || []);
+      }).catch(console.error);
+
+      tasksApi.getForDate(format(new Date(), 'yyyy-MM-dd')).then(response => {
+        const allTasks = [...(response.data.tasks || []), ...(response.data.carried_over || [])];
+        setAvailableTasks(allTasks);
+      }).catch(console.error);
+    } else {
+      setLinkedTasks([]);
+      setShowTaskPicker(false);
+    }
+  }, [note?.id, isOpen]);
 
   const handleTagToggle = (tagId) => {
     setTagIds(prev =>
@@ -140,6 +163,40 @@ export default function NoteModal({ isOpen, onClose, onSave, onDelete, note = nu
     if (note && window.confirm('Are you sure you want to delete this note?')) {
       onDelete(note.id);
     }
+  };
+
+  const handleLinkTask = async (taskId) => {
+    if (!note?.id) return;
+    try {
+      await notesApi.linkTask(note.id, taskId);
+      const task = availableTasks.find(t => t.id === taskId);
+      if (task) {
+        setLinkedTasks(prev => [...prev, task]);
+      }
+      setShowTaskPicker(false);
+    } catch (error) {
+      console.error('Failed to link task:', error);
+    }
+  };
+
+  const handleUnlinkTask = async (taskId) => {
+    if (!note?.id) return;
+    try {
+      await notesApi.unlinkTask(note.id, taskId);
+      setLinkedTasks(prev => prev.filter(t => t.id !== taskId));
+    } catch (error) {
+      console.error('Failed to unlink task:', error);
+    }
+  };
+
+  const getStatusIcon = (status) => {
+    const icons = { backlog: 'inbox', in_progress: 'play_circle', partial: 'timelapse', done: 'check_circle' };
+    return icons[status] || 'inbox';
+  };
+
+  const getStatusColor = (status) => {
+    const colors = { backlog: 'text-slate-400', in_progress: 'text-blue-400', partial: 'text-orange-400', done: 'text-green-400' };
+    return colors[status] || 'text-slate-400';
   };
 
   if (!isOpen) return null;
@@ -243,6 +300,78 @@ export default function NoteModal({ isOpen, onClose, onSave, onDelete, note = nu
               <EditorContent editor={editor} />
             </div>
           </div>
+
+          {/* Linked Tasks - only show when editing */}
+          {note && (
+            <div className="px-4 pb-4">
+              <label className="text-slate-400 text-sm mb-2 block">Linked Tasks</label>
+
+              {/* Task list */}
+              <div className="space-y-2 mb-3">
+                {linkedTasks.length === 0 ? (
+                  <p className="text-slate-500 text-sm">No linked tasks</p>
+                ) : (
+                  linkedTasks.map(task => (
+                    <div key={task.id} className="bg-slate-800/50 rounded-lg p-3 group flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className={`material-symbols-outlined text-base ${getStatusColor(task.status)}`}>
+                          {getStatusIcon(task.status)}
+                        </span>
+                        <div>
+                          <p className="text-white text-sm">{task.title}</p>
+                          <p className="text-slate-500 text-xs">
+                            {task.status.replace('_', ' ')} · {format(new Date(task.scheduled_date), 'MMM d')}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleUnlinkTask(task.id)}
+                        className="text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <span className="material-symbols-outlined text-sm">close</span>
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* Link task button */}
+              <button
+                type="button"
+                onClick={() => setShowTaskPicker(!showTaskPicker)}
+                className="w-full py-2 rounded-lg border border-dashed border-slate-700 text-slate-400 hover:border-slate-600 hover:text-slate-300 transition-colors flex items-center justify-center gap-2 text-sm"
+              >
+                <span className="material-symbols-outlined text-base">add</span>
+                Link to task
+              </button>
+
+              {/* Task picker dropdown */}
+              {showTaskPicker && (
+                <div className="mt-2 bg-slate-800 border border-slate-700 rounded-lg max-h-40 overflow-y-auto">
+                  {availableTasks.filter(t => !linkedTasks.find(lt => lt.id === t.id)).length === 0 ? (
+                    <p className="text-slate-500 text-sm p-3">No tasks available to link</p>
+                  ) : (
+                    availableTasks
+                      .filter(t => !linkedTasks.find(lt => lt.id === t.id))
+                      .map(task => (
+                        <button
+                          key={task.id}
+                          type="button"
+                          onClick={() => handleLinkTask(task.id)}
+                          className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:bg-slate-700 transition-colors flex items-center gap-2"
+                        >
+                          <span className={`material-symbols-outlined text-base ${getStatusColor(task.status)}`}>
+                            {getStatusIcon(task.status)}
+                          </span>
+                          {task.title}
+                        </button>
+                      ))
+                  )}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Delete Button */}
           {note && (
