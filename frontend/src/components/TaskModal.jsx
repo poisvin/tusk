@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
-import { format } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
+import { tasksApi } from '../api/tasks';
+import { notesApi } from '../api/notes';
 
 const CATEGORIES = [
   { value: 'personal', label: 'Personal' },
@@ -93,6 +95,11 @@ export default function TaskModal({ isOpen, onClose, onSave, onDelete, task = nu
   });
 
   const [errors, setErrors] = useState({});
+  const [taskUpdates, setTaskUpdates] = useState([]);
+  const [linkedNotes, setLinkedNotes] = useState([]);
+  const [newUpdateContent, setNewUpdateContent] = useState('');
+  const [showNotePicker, setShowNotePicker] = useState(false);
+  const [availableNotes, setAvailableNotes] = useState([]);
 
   const editor = useEditor({
     extensions: [StarterKit],
@@ -143,6 +150,25 @@ export default function TaskModal({ isOpen, onClose, onSave, onDelete, task = nu
     setErrors({});
   }, [task, isOpen, editor]);
 
+  useEffect(() => {
+    if (task?.id && isOpen) {
+      tasksApi.get(task.id).then(response => {
+        const data = response.data;
+        setTaskUpdates(data.task_updates || []);
+        setLinkedNotes(data.linked_notes || []);
+      }).catch(console.error);
+
+      notesApi.getAll().then(response => {
+        setAvailableNotes(response.data || []);
+      }).catch(console.error);
+    } else {
+      setTaskUpdates([]);
+      setLinkedNotes([]);
+      setNewUpdateContent('');
+      setShowNotePicker(false);
+    }
+  }, [task?.id, isOpen]);
+
   const handleWeekDayToggle = (day) => {
     setFormData(prev => ({
       ...prev,
@@ -170,6 +196,51 @@ export default function TaskModal({ isOpen, onClose, onSave, onDelete, task = nu
         ? prev.tag_ids.filter(id => id !== tagId)
         : [...prev.tag_ids, tagId],
     }));
+  };
+
+  const handleAddUpdate = async () => {
+    if (!newUpdateContent.trim() || !task?.id) return;
+    try {
+      const response = await tasksApi.addUpdate(task.id, newUpdateContent.trim());
+      setTaskUpdates(prev => [response.data, ...prev]);
+      setNewUpdateContent('');
+    } catch (error) {
+      console.error('Failed to add update:', error);
+    }
+  };
+
+  const handleDeleteUpdate = async (updateId) => {
+    if (!task?.id) return;
+    try {
+      await tasksApi.deleteUpdate(task.id, updateId);
+      setTaskUpdates(prev => prev.filter(u => u.id !== updateId));
+    } catch (error) {
+      console.error('Failed to delete update:', error);
+    }
+  };
+
+  const handleLinkNote = async (noteId) => {
+    if (!task?.id) return;
+    try {
+      await tasksApi.linkNote(task.id, noteId);
+      const note = availableNotes.find(n => n.id === noteId);
+      if (note) {
+        setLinkedNotes(prev => [note, ...prev]);
+      }
+      setShowNotePicker(false);
+    } catch (error) {
+      console.error('Failed to link note:', error);
+    }
+  };
+
+  const handleUnlinkNote = async (noteId) => {
+    if (!task?.id) return;
+    try {
+      await tasksApi.unlinkNote(task.id, noteId);
+      setLinkedNotes(prev => prev.filter(n => n.id !== noteId));
+    } catch (error) {
+      console.error('Failed to unlink note:', error);
+    }
   };
 
   const handleSubmit = (e) => {
@@ -355,6 +426,114 @@ export default function TaskModal({ isOpen, onClose, onSave, onDelete, task = nu
                     {s.label}
                   </button>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {/* Progress Notes - only show when editing */}
+          {task && (
+            <div className="mb-4">
+              <label className="text-slate-400 text-sm mb-2 block">Progress Notes</label>
+
+              {/* Add note input */}
+              <div className="flex gap-2 mb-3">
+                <input
+                  type="text"
+                  value={newUpdateContent}
+                  onChange={(e) => setNewUpdateContent(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddUpdate())}
+                  placeholder="Add a note..."
+                  className="flex-1 bg-slate-800/50 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm placeholder-slate-500 focus:outline-none focus:border-primary"
+                />
+                <button
+                  type="button"
+                  onClick={handleAddUpdate}
+                  disabled={!newUpdateContent.trim()}
+                  className="px-3 py-2 rounded-lg bg-primary text-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-600 transition-colors"
+                >
+                  Add
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowNotePicker(!showNotePicker)}
+                  className="px-3 py-2 rounded-lg bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+                  title="Link a note"
+                >
+                  <span className="material-symbols-outlined text-base">attach_file</span>
+                </button>
+              </div>
+
+              {/* Note picker dropdown */}
+              {showNotePicker && (
+                <div className="mb-3 bg-slate-800 border border-slate-700 rounded-lg max-h-40 overflow-y-auto">
+                  {availableNotes.filter(n => !linkedNotes.find(ln => ln.id === n.id)).length === 0 ? (
+                    <p className="text-slate-500 text-sm p-3">No notes available to link</p>
+                  ) : (
+                    availableNotes
+                      .filter(n => !linkedNotes.find(ln => ln.id === n.id))
+                      .map(note => (
+                        <button
+                          key={note.id}
+                          type="button"
+                          onClick={() => handleLinkNote(note.id)}
+                          className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:bg-slate-700 transition-colors flex items-center gap-2"
+                        >
+                          <span className="material-symbols-outlined text-base text-slate-500">description</span>
+                          {note.title}
+                        </button>
+                      ))
+                  )}
+                </div>
+              )}
+
+              {/* Updates and linked notes list */}
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {[
+                  ...taskUpdates.map(u => ({ type: 'update', data: u, date: new Date(u.created_at) })),
+                  ...linkedNotes.map(n => ({ type: 'note', data: n, date: new Date(n.created_at) }))
+                ]
+                  .sort((a, b) => b.date - a.date)
+                  .map((item) => (
+                    item.type === 'update' ? (
+                      <div key={`update-${item.data.id}`} className="bg-slate-800/50 rounded-lg p-3 group">
+                        <p className="text-white text-sm">{item.data.content}</p>
+                        <div className="flex items-center justify-between mt-1">
+                          <span className="text-slate-500 text-xs">
+                            {formatDistanceToNow(item.date, { addSuffix: true })}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteUpdate(item.data.id)}
+                            className="text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <span className="material-symbols-outlined text-sm">close</span>
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div key={`note-${item.data.id}`} className="bg-slate-800/50 rounded-lg p-3 group border border-slate-700">
+                        <div className="flex items-center gap-2">
+                          <span className="material-symbols-outlined text-base text-primary">description</span>
+                          <span className="text-white text-sm font-medium flex-1">{item.data.title}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleUnlinkNote(item.data.id)}
+                            className="text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <span className="material-symbols-outlined text-sm">close</span>
+                          </button>
+                        </div>
+                        <span className="text-slate-500 text-xs">
+                          Linked {formatDistanceToNow(item.date, { addSuffix: true })}
+                        </span>
+                      </div>
+                    )
+                  ))
+                }
+
+                {taskUpdates.length === 0 && linkedNotes.length === 0 && (
+                  <p className="text-slate-500 text-sm text-center py-2">No progress notes yet</p>
+                )}
               </div>
             </div>
           )}
