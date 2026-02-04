@@ -150,6 +150,11 @@ export default function Calendar() {
       <Header
         title="Task Scheduler"
         leftIcon="calendar_month"
+        onLeftIconClick={() => {
+          const today = new Date();
+          setSelectedDate(today);
+          setCurrentMonth(today);
+        }}
         rightAction={
           <button className="flex items-center justify-center text-white">
             <span className="material-symbols-outlined">search</span>
