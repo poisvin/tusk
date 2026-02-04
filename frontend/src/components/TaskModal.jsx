@@ -41,6 +41,7 @@ const STATUSES = [
   { value: 'partial', label: 'Partial', icon: 'timelapse', color: 'text-orange-400' },
   { value: 'blocked', label: 'Blocked', icon: 'block', color: 'text-red-400' },
   { value: 'done', label: 'Done', icon: 'check_circle', color: 'text-green-400' },
+  { value: 'closed', label: 'Closed', icon: 'cancel', color: 'text-slate-500' },
 ];
 
 function MenuBar({ editor }) {
@@ -411,16 +412,21 @@ export default function TaskModal({ isOpen, onClose, onSave, onDelete, task = nu
           {task && (
             <div className="mb-4">
               <label className="text-slate-400 text-sm mb-2 block">Status</label>
-              <select
-                name="status"
-                value={formData.status}
-                onChange={handleChange}
-                className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-primary"
-              >
-                {STATUSES.map(s => (
-                  <option key={s.value} value={s.value}>{s.label}</option>
-                ))}
-              </select>
+              <div className="relative">
+                <select
+                  name="status"
+                  value={formData.status}
+                  onChange={handleChange}
+                  className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-primary appearance-none cursor-pointer"
+                >
+                  {STATUSES.map(s => (
+                    <option key={s.value} value={s.value}>{s.label}</option>
+                  ))}
+                </select>
+                <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                  expand_more
+                </span>
+              </div>
             </div>
           )}
 
@@ -535,16 +541,21 @@ export default function TaskModal({ isOpen, onClose, onSave, onDelete, task = nu
           {/* Recurrence */}
           <div className="mb-4">
             <label className="text-slate-400 text-sm mb-2 block">Repeat</label>
-            <select
-              name="recurrence"
-              value={formData.recurrence}
-              onChange={handleChange}
-              className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-primary"
-            >
-              {RECURRENCES.map(r => (
-                <option key={r.value} value={r.value}>{r.label}</option>
-              ))}
-            </select>
+            <div className="relative">
+              <select
+                name="recurrence"
+                value={formData.recurrence}
+                onChange={handleChange}
+                className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-primary appearance-none cursor-pointer"
+              >
+                {RECURRENCES.map(r => (
+                  <option key={r.value} value={r.value}>{r.label}</option>
+                ))}
+              </select>
+              <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                expand_more
+              </span>
+            </div>
           </div>
 
           {/* Weekly Days Selector - only show when weekly is selected */}

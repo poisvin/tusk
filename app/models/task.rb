@@ -10,7 +10,7 @@ class Task < ApplicationRecord
   validates :title, presence: true
   validates :scheduled_date, presence: true
 
-  enum :status, { backlog: 0, in_progress: 1, partial: 2, done: 3, blocked: 4 }
+  enum :status, { backlog: 0, in_progress: 1, partial: 2, done: 3, blocked: 4, closed: 5 }
   enum :priority, { low: 0, medium: 1, high: 2 }
   enum :category, { personal: 0, official: 1 }
   enum :recurrence, { one_time: 0, daily: 1, weekly: 2, monthly: 3, weekdays: 4, weekends: 5 }

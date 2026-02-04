@@ -7,7 +7,7 @@ RSpec.describe Task, type: :model do
   end
 
   describe 'enums' do
-    it { should define_enum_for(:status).with_values(backlog: 0, in_progress: 1, partial: 2, done: 3, blocked: 4) }
+    it { should define_enum_for(:status).with_values(backlog: 0, in_progress: 1, partial: 2, done: 3, blocked: 4, closed: 5) }
     it { should define_enum_for(:priority).with_values(low: 0, medium: 1, high: 2) }
     it { should define_enum_for(:category).with_values(personal: 0, official: 1) }
     it { should define_enum_for(:recurrence).with_values(one_time: 0, daily: 1, weekly: 2, monthly: 3, weekdays: 4, weekends: 5) }
