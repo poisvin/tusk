@@ -6,7 +6,7 @@ import RightSidebar from '../components/layouts/RightSidebar';
 import { tasksApi } from '../api/tasks';
 import { tagsApi } from '../api/tags';
 
-export default function Dashboard() {
+export default function Dashboard({ showRightSidebar = true }) {
   const [tasks, setTasks] = useState([]);
   const [carriedOver, setCarriedOver] = useState([]);
   const [tags, setTags] = useState([]);
@@ -185,7 +185,7 @@ export default function Dashboard() {
           tags={tags}
         />
       </div>
-      <RightSidebar tasks={allTasks} />
+      {showRightSidebar && <RightSidebar tasks={allTasks} />}
     </div>
   );
 }

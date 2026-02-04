@@ -16,7 +16,7 @@ function AppRoutes() {
       <Routes>
         <Route path="/" element={<DesktopLayout />}>
           <Route index element={<Dashboard />} />
-          <Route path="today" element={<Dashboard />} />
+          <Route path="today" element={<Dashboard showRightSidebar={false} />} />
           <Route path="calendar" element={<Calendar />} />
           <Route path="notes" element={<Notes />} />
           <Route path="settings" element={<Settings />} />
