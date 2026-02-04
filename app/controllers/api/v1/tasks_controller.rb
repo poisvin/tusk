@@ -4,8 +4,14 @@ module Api
       def index
         date = params[:date] ? Date.parse(params[:date]) : Date.today
 
-        tasks = Task.for_date(date).where(carried_over: [false, nil]).includes(:tags, :task_updates, :notes)
-        carried_over = Task.for_date(date).carried_over.includes(:tags, :task_updates, :notes)
+        tasks = Task.for_date(date)
+                    .where(carried_over: [false, nil])
+                    .includes(:tags, :task_updates, :notes)
+                    .order(Arel.sql('start_time IS NULL, start_time ASC'))
+        carried_over = Task.for_date(date)
+                           .carried_over
+                           .includes(:tags, :task_updates, :notes)
+                           .order(Arel.sql('start_time IS NULL, start_time ASC'))
 
         render json: {
           tasks: TaskBlueprint.render_as_hash(tasks),
