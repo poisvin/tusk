@@ -85,6 +85,9 @@ export default function NoteModal({ isOpen, onClose, onSave, onDelete, note = nu
   const [linkedTasks, setLinkedTasks] = useState([]);
   const [availableTasks, setAvailableTasks] = useState([]);
   const [showTaskPicker, setShowTaskPicker] = useState(false);
+  const [attachments, setAttachments] = useState([]);
+  const [newFiles, setNewFiles] = useState([]);
+  const [isDragging, setIsDragging] = useState(false);
 
   const editor = useEditor({
     extensions: [StarterKit],
@@ -101,6 +104,7 @@ export default function NoteModal({ isOpen, onClose, onSave, onDelete, note = nu
       setTitle(note.title || '');
       setCategory(note.category || 'personal');
       setTagIds(note.tags?.map(t => t.id) || []);
+      setAttachments(note.attachments || []);
       if (editor) {
         editor.commands.setContent(note.content || '');
       }
@@ -108,6 +112,8 @@ export default function NoteModal({ isOpen, onClose, onSave, onDelete, note = nu
       setTitle('');
       setCategory('personal');
       setTagIds([]);
+      setAttachments([]);
+      setNewFiles([]);
       if (editor) {
         editor.commands.setContent('');
       }
@@ -156,7 +162,7 @@ export default function NoteModal({ isOpen, onClose, onSave, onDelete, note = nu
       content: editor?.getHTML() || '',
       category,
       tag_ids: tagIds,
-    });
+    }, newFiles);
   };
 
   const handleDelete = () => {
@@ -197,6 +203,54 @@ export default function NoteModal({ isOpen, onClose, onSave, onDelete, note = nu
   const getStatusColor = (status) => {
     const colors = { backlog: 'text-slate-400', in_progress: 'text-blue-400', partial: 'text-orange-400', done: 'text-green-400' };
     return colors[status] || 'text-slate-400';
+  };
+
+  const handleFileSelect = (e) => {
+    const files = Array.from(e.target.files);
+    setNewFiles(prev => [...prev, ...files]);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const files = Array.from(e.dataTransfer.files);
+    setNewFiles(prev => [...prev, ...files]);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleRemoveNewFile = (index) => {
+    setNewFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleDeleteAttachment = async (attachmentId) => {
+    if (!note?.id) return;
+    try {
+      await notesApi.deleteAttachment(note.id, attachmentId);
+      setAttachments(prev => prev.filter(a => a.id !== attachmentId));
+    } catch (error) {
+      console.error('Failed to delete attachment:', error);
+    }
+  };
+
+  const formatFileSize = (bytes) => {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  };
+
+  const getFileIcon = (contentType) => {
+    if (contentType?.startsWith('image/')) return 'image';
+    if (contentType === 'application/pdf') return 'picture_as_pdf';
+    return 'attach_file';
   };
 
   if (!isOpen) return null;
@@ -299,6 +353,91 @@ export default function NoteModal({ isOpen, onClose, onSave, onDelete, note = nu
               <MenuBar editor={editor} />
               <EditorContent editor={editor} />
             </div>
+          </div>
+
+          {/* Attachments */}
+          <div className="px-4 pb-4">
+            <label className="text-slate-400 text-sm mb-2 block">Attachments</label>
+
+            {/* Drop zone */}
+            <div
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onClick={() => document.getElementById('file-input').click()}
+              className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors mb-3 ${
+                isDragging
+                  ? 'border-primary bg-primary/10'
+                  : 'border-slate-700 hover:border-slate-600'
+              }`}
+            >
+              <input
+                id="file-input"
+                type="file"
+                multiple
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+              <span className="material-symbols-outlined text-3xl text-slate-500 mb-2 block">
+                upload_file
+              </span>
+              <p className="text-slate-400 text-sm">
+                Drop files here or click to browse
+              </p>
+            </div>
+
+            {/* Existing attachments */}
+            {attachments.length > 0 && (
+              <div className="space-y-2 mb-3">
+                {attachments.map(attachment => (
+                  <div key={attachment.id} className="bg-slate-800/50 rounded-lg p-3 flex items-center justify-between group">
+                    <div className="flex items-center gap-3">
+                      <span className="material-symbols-outlined text-slate-400">
+                        {getFileIcon(attachment.content_type)}
+                      </span>
+                      <div>
+                        <p className="text-white text-sm">{attachment.filename}</p>
+                        <p className="text-slate-500 text-xs">{formatFileSize(attachment.byte_size)}</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteAttachment(attachment.id)}
+                      className="text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <span className="material-symbols-outlined text-sm">close</span>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* New files to upload */}
+            {newFiles.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-slate-500 text-xs">Files to upload:</p>
+                {newFiles.map((file, index) => (
+                  <div key={index} className="bg-slate-800/50 rounded-lg p-3 flex items-center justify-between group border border-primary/30">
+                    <div className="flex items-center gap-3">
+                      <span className="material-symbols-outlined text-primary">
+                        {getFileIcon(file.type)}
+                      </span>
+                      <div>
+                        <p className="text-white text-sm">{file.name}</p>
+                        <p className="text-slate-500 text-xs">{formatFileSize(file.size)}</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveNewFile(index)}
+                      className="text-slate-600 hover:text-red-400"
+                    >
+                      <span className="material-symbols-outlined text-sm">close</span>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Linked Tasks - only show when editing */}
