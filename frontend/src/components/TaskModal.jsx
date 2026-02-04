@@ -459,7 +459,7 @@ export default function TaskModal({ isOpen, onClose, onSave, onDelete, task = nu
                   className="px-3 py-2 rounded-lg bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
                   title="Link a note"
                 >
-                  <span className="material-symbols-outlined text-base">attach_file</span>
+                  <span className="material-symbols-outlined text-base">add_link</span>
                 </button>
               </div>
 
