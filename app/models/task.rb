@@ -19,6 +19,7 @@ class Task < ApplicationRecord
   scope :incomplete, -> { where.not(status: :done) }
   scope :carried_over, -> { where(carried_over: true) }
 
+  before_create :adjust_date_for_recurrence, if: :should_adjust_date?
   after_create :generate_recurring_occurrences, if: :should_generate_occurrences?
   after_update :sync_recurring_series, if: :should_sync_series?
   after_update :regenerate_recurring_children, if: :should_regenerate_children?
@@ -38,6 +39,62 @@ class Task < ApplicationRecord
   end
 
   private
+
+  def should_adjust_date?
+    # Adjust date for recurring tasks that aren't children
+    !one_time? && recurrence_parent_id.nil?
+  end
+
+  def adjust_date_for_recurrence
+    return unless scheduled_date
+
+    case recurrence
+    when 'weekdays'
+      # If scheduled on weekend, move to next Monday
+      unless (1..5).include?(scheduled_date.wday)
+        self.scheduled_date = next_weekday(scheduled_date)
+      end
+    when 'weekends'
+      # If scheduled on weekday, move to next Saturday
+      unless [0, 6].include?(scheduled_date.wday)
+        self.scheduled_date = next_weekend_day(scheduled_date)
+      end
+    when 'weekly'
+      # If weekly_days specified and current day not in list, move to next matching day
+      if weekly_days.present? && weekly_days.any?
+        current_day = scheduled_date.strftime('%A').downcase
+        unless weekly_days.map(&:downcase).include?(current_day)
+          self.scheduled_date = next_weekly_day(scheduled_date)
+        end
+      end
+    end
+  end
+
+  def next_weekday(from_date)
+    date = from_date
+    date += 1.day until (1..5).include?(date.wday)
+    date
+  end
+
+  def next_weekend_day(from_date)
+    date = from_date
+    date += 1.day until [0, 6].include?(date.wday)
+    date
+  end
+
+  def next_weekly_day(from_date)
+    return from_date unless weekly_days.present?
+
+    day_offsets = {
+      'sunday' => 0, 'monday' => 1, 'tuesday' => 2, 'wednesday' => 3,
+      'thursday' => 4, 'friday' => 5, 'saturday' => 6
+    }
+    target_wdays = weekly_days.map { |d| day_offsets[d.downcase] }.compact
+
+    date = from_date
+    date += 1.day until target_wdays.include?(date.wday)
+    date
+  end
 
   def should_generate_occurrences?
     # Only generate for parent tasks (not children) that have recurrence
