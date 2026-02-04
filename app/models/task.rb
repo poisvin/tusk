@@ -4,6 +4,7 @@ class Task < ApplicationRecord
   # Self-referential association for recurring tasks
   belongs_to :recurrence_parent, class_name: 'Task', optional: true
   has_many :recurrence_children, class_name: 'Task', foreign_key: 'recurrence_parent_id', dependent: :destroy
+  has_many :task_updates, dependent: :destroy
 
   validates :title, presence: true
   validates :scheduled_date, presence: true
