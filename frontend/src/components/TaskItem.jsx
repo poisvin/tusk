@@ -4,7 +4,7 @@ const STATUS_STYLES = {
   partial: { icon: 'timelapse', color: 'text-orange-400' },
   done: { icon: 'check_circle', color: 'text-green-400' },
   blocked: { icon: 'block', color: 'text-red-400' },
-  closed: { icon: 'cancel', color: 'text-slate-500' },
+  closed: { icon: 'archive', color: 'text-slate-500' },
 };
 
 export default function TaskItem({ task, onToggle, onTaskClick, isCarriedOver }) {

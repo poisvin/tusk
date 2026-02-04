@@ -41,7 +41,7 @@ const STATUSES = [
   { value: 'partial', label: 'Partial', icon: 'timelapse', color: 'text-orange-400' },
   { value: 'blocked', label: 'Blocked', icon: 'block', color: 'text-red-400' },
   { value: 'done', label: 'Done', icon: 'check_circle', color: 'text-green-400' },
-  { value: 'closed', label: 'Closed', icon: 'cancel', color: 'text-slate-500' },
+  { value: 'closed', label: 'Closed', icon: 'archive', color: 'text-slate-500' },
 ];
 
 function MenuBar({ editor }) {
