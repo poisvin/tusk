@@ -1,0 +1,18 @@
+<%# Usage: render "shared/header", title: "Page Title", left_icon: "icon_name", right_content: capture { ... } %>
+<header class="sticky top-0 z-10 flex items-center bg-background-dark/80 backdrop-blur-md p-4 pb-2 justify-between">
+  <div class="text-white flex size-12 shrink-0 items-center <%= 'cursor-pointer hover:text-primary transition-colors' if local_assigns[:left_icon_path] %>">
+    <% if local_assigns[:left_icon_path] %>
+      <%= link_to left_icon_path, class: "text-white hover:text-primary transition-colors" do %>
+        <span class="material-symbols-outlined text-[28px]"><%= left_icon %></span>
+      <% end %>
+    <% else %>
+      <span class="material-symbols-outlined text-[28px]"><%= left_icon %></span>
+    <% end %>
+  </div>
+  <h2 class="text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center">
+    <%= title %>
+  </h2>
+  <div class="flex w-12 items-center justify-end">
+    <%= right_content if local_assigns[:right_content] %>
+  </div>
+</header>

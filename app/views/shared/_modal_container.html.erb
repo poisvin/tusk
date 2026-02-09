@@ -1,0 +1,21 @@
+<div
+  id="modal-container"
+  class="hidden fixed inset-0 z-50 items-end sm:items-center justify-center"
+  data-controller="modal"
+  data-action="keydown.esc->modal#close turbo:submit-end->modal#handleSubmit"
+>
+  <!-- Backdrop -->
+  <div
+    class="absolute inset-0 bg-black/60 backdrop-blur-sm"
+    data-action="click->modal#close"
+  ></div>
+
+  <!-- Modal Content Frame -->
+  <turbo-frame
+    id="modal-content"
+    class="relative w-full max-w-[430px] max-h-[90vh]"
+    data-modal-target="content"
+  >
+    <!-- Content loaded here via Turbo Frame -->
+  </turbo-frame>
+</div>

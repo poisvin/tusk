@@ -1,0 +1,132 @@
+<%
+  category_colors = {
+    'personal' => 'bg-blue-500/10 text-blue-400',
+    'work' => 'bg-green-500/10 text-green-400',
+    'ideas' => 'bg-purple-500/10 text-purple-400'
+  }
+%>
+
+<% if mobile? %>
+  <%= render "shared/header",
+      title: "Notes Repository",
+      left_icon: "notes",
+      right_content: capture {
+        link_to "#", class: "flex items-center justify-center text-white", data: { action: "click->search#toggle" } do
+          content_tag(:span, "search", class: "material-symbols-outlined")
+        end
+      } %>
+<% end %>
+
+<main class="flex-1 <%= 'pb-24' if mobile? %>" data-controller="search">
+  <!-- Search Bar (hidden by default on mobile) -->
+  <div class="px-4 py-3 border-b border-slate-800 hidden" data-search-target="container">
+    <div class="relative">
+      <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">
+        search
+      </span>
+      <%= form_with url: notes_path, method: :get, local: true, class: "w-full" do %>
+        <%= text_field_tag :q, @search_query,
+            placeholder: "Search notes...",
+            class: "w-full bg-slate-800/50 border border-slate-700 rounded-lg pl-10 pr-4 py-2 text-white placeholder-slate-500 focus:outline-none focus:border-primary",
+            data: { search_target: "input", action: "input->search#search" } %>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Category Filter -->
+  <div class="px-4 py-3 overflow-x-auto">
+    <div class="flex gap-2 min-w-max">
+      <%= link_to notes_path,
+          class: "flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all #{params[:category].blank? ? 'bg-primary text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}" do %>
+        <span class="material-symbols-outlined text-base">folder</span>
+        All
+      <% end %>
+
+      <% Note.categories.keys.each do |cat| %>
+        <%= link_to notes_path(category: cat),
+            class: "flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all #{params[:category] == cat ? 'bg-primary text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}" do %>
+          <span class="material-symbols-outlined text-base">
+            <%= cat == 'personal' ? 'person' : cat == 'work' ? 'work' : 'lightbulb' %>
+          </span>
+          <%= cat.humanize %>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Notes Count -->
+  <div class="px-4 py-2">
+    <p class="text-slate-500 text-sm">
+      <%= @notes.count %> note<%= @notes.count != 1 ? 's' : '' %>
+      <% if @search_query.present? %>
+        matching "<%= @search_query %>"
+      <% end %>
+    </p>
+  </div>
+
+  <!-- Notes Grid -->
+  <div class="px-4 pb-4">
+    <% if @notes.any? %>
+      <div class="grid grid-cols-1 gap-3">
+        <% @notes.each do |note| %>
+          <%= link_to edit_note_path(note),
+              class: "bg-[#1a2333] border border-slate-800 rounded-xl p-4 cursor-pointer hover:border-slate-600 transition-all block",
+              data: { turbo_frame: "modal-content" } do %>
+            <div class="flex items-start justify-between gap-3 mb-2">
+              <h3 class="text-white font-semibold text-base line-clamp-1">
+                <%= note.title %>
+              </h3>
+              <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full shrink-0 <%= category_colors[note.category] || category_colors['personal'] %>">
+                <%= note.category %>
+              </span>
+            </div>
+
+            <% if note.content.present? %>
+              <p class="text-slate-400 text-sm line-clamp-2 mb-3">
+                <%= strip_tags(note.content).truncate(100) %>
+              </p>
+            <% end %>
+
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-1 text-slate-500 text-xs">
+                <span class="material-symbols-outlined text-sm">schedule</span>
+                <%= note.updated_at.strftime('%b %-d, %Y') %>
+              </div>
+              <% if note.tags.any? %>
+                <div class="flex gap-1">
+                  <% note.tags.first(2).each do |tag| %>
+                    <span
+                      class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400"
+                      <%= "style='background-color: #{tag.color}20; color: #{tag.color}'" if tag.color.present? %>
+                    >
+                      <%= tag.name %>
+                    </span>
+                  <% end %>
+                  <% if note.tags.count > 2 %>
+                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400">
+                      +<%= note.tags.count - 2 %>
+                    </span>
+                  <% end %>
+                </div>
+              <% end %>
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="text-center text-slate-400 py-12">
+        <span class="material-symbols-outlined text-6xl mb-4 block">notes</span>
+        <% if @search_query.present? %>
+          <p>No notes matching "<%= @search_query %>"</p>
+        <% else %>
+          <p>No notes yet</p>
+          <p class="text-sm">Tap + to create a note</p>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</main>
+
+<% if mobile? %>
+  <%= render "shared/floating_add_button", path: new_note_path %>
+<% end %>

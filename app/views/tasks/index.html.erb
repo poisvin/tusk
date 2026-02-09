@@ -1,0 +1,78 @@
+<% if mobile? %>
+  <%= render "shared/header", title: "Task Scheduler", left_icon: "check_box" %>
+<% end %>
+
+<div class="flex-1 p-6 overflow-y-auto <%= 'pb-24' if mobile? %>">
+  <!-- Header -->
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold text-white mb-1">Today's Focus</h1>
+    <p class="text-slate-400">
+      <%= @all_tasks.count %> task<%= @all_tasks.count != 1 ? 's' : '' %> scheduled for today
+    </p>
+  </div>
+
+  <!-- Daily Progress -->
+  <div class="mb-6">
+    <%= render "tasks/daily_progress", tasks: @all_tasks %>
+  </div>
+
+  <!-- Carried Over Section -->
+  <% if @carried_over.any? %>
+    <div class="mb-6">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="material-symbols-outlined text-orange-400">history</span>
+        <h2 class="text-lg font-semibold text-orange-400">Carried Over</h2>
+        <span class="bg-orange-400/20 text-orange-400 text-xs px-2 py-0.5 rounded-full">
+          <%= @carried_over.count %>
+        </span>
+      </div>
+      <div class="bg-slate-800/30 rounded-xl overflow-hidden border border-orange-400/20">
+        <% @carried_over.each do |task| %>
+          <%= render "tasks/task_item", task: task, carried_over: true %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Today's Schedule Section -->
+  <div class="mb-6">
+    <div class="flex items-center justify-between mb-3">
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary">calendar_today</span>
+        <h2 class="text-lg font-semibold text-white"><%= @date.strftime('%A, %B %-d') %></h2>
+      </div>
+      <%= link_to new_task_path(date: @date),
+          class: "flex items-center gap-1.5 text-primary hover:text-blue-400 transition-colors text-sm font-medium",
+          data: { turbo_frame: "modal-content" } do %>
+        <span class="material-symbols-outlined text-lg">add</span>
+        Add task
+      <% end %>
+    </div>
+
+    <% if @tasks.any? %>
+      <div id="tasks-list" class="bg-slate-800/30 rounded-xl overflow-hidden border border-slate-700">
+        <% @tasks.each do |task| %>
+          <%= render "tasks/task_item", task: task %>
+        <% end %>
+      </div>
+    <% elsif @carried_over.empty? %>
+      <div class="bg-slate-800/30 rounded-xl border border-slate-700 p-12 text-center">
+        <span class="material-symbols-outlined text-5xl text-slate-600 mb-3 block">task_alt</span>
+        <p class="text-slate-400 mb-2">No tasks scheduled for today</p>
+        <%= link_to new_task_path(date: @date),
+            class: "text-primary hover:text-blue-400 transition-colors text-sm font-medium",
+            data: { turbo_frame: "modal-content" } do %>
+          + Add your first task
+        <% end %>
+      </div>
+    <% else %>
+      <div class="bg-slate-800/30 rounded-xl border border-slate-700 p-8 text-center">
+        <p class="text-slate-500">No additional tasks for today</p>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<% if mobile? %>
+  <%= render "shared/floating_add_button", path: new_task_path(date: @date) %>
+<% end %>

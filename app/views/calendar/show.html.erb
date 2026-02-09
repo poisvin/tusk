@@ -1,0 +1,184 @@
+<%
+  priority_styles = {
+    'high' => { bg: 'bg-red-500/10', text: 'text-red-500', label: 'HIGH' },
+    'medium' => { bg: 'bg-yellow-500/10', text: 'text-yellow-500', label: 'MEDIUM' },
+    'low' => { bg: 'bg-slate-500/10', text: 'text-slate-400', label: 'LOW' }
+  }
+%>
+
+<% if mobile? %>
+  <%= render "shared/header",
+      title: "Task Scheduler",
+      left_icon: "calendar_month",
+      left_icon_path: calendar_path(date: Date.today, month: Date.today, view: @view_mode),
+      right_content: capture {
+        link_to "#", class: "flex items-center justify-center text-white" do
+          content_tag(:span, "search", class: "material-symbols-outlined")
+        end
+      } %>
+<% end %>
+
+<main class="flex-1 <%= 'pb-24' if mobile? %>"
+      data-controller="calendar"
+      data-calendar-current-month-value="<%= @current_month.strftime('%Y-%m-%d') %>"
+      data-calendar-selected-date-value="<%= @selected_date.strftime('%Y-%m-%d') %>"
+      data-calendar-view-mode-value="<%= @view_mode %>">
+
+  <!-- View Mode Toggle -->
+  <div class="flex px-4 py-3">
+    <div class="flex h-10 flex-1 items-center justify-center rounded-lg bg-[#232f48] p-1">
+      <button
+        type="button"
+        data-calendar-target="weekBtn"
+        data-action="calendar#setWeekView"
+        class="flex h-full grow items-center justify-center rounded-lg px-2 text-sm font-medium transition-all <%= @view_mode == 'week' ? 'bg-background-dark shadow text-white' : 'text-[#92a4c9]' %>"
+      >
+        Week
+      </button>
+      <button
+        type="button"
+        data-calendar-target="monthBtn"
+        data-action="calendar#setMonthView"
+        class="flex h-full grow items-center justify-center rounded-lg px-2 text-sm font-medium transition-all <%= @view_mode == 'month' ? 'bg-background-dark shadow text-white' : 'text-[#92a4c9]' %>"
+      >
+        Month
+      </button>
+    </div>
+  </div>
+
+  <!-- Calendar Navigation -->
+  <div class="flex items-center justify-between px-4 mb-2">
+    <button
+      type="button"
+      data-action="calendar#previous"
+      class="text-white flex size-10 items-center justify-center rounded-full hover:bg-slate-800 transition-colors"
+    >
+      <span class="material-symbols-outlined">chevron_left</span>
+    </button>
+    <p class="text-white text-base font-bold" data-calendar-target="monthLabel">
+      <%= @current_month.strftime('%B %Y') %>
+    </p>
+    <button
+      type="button"
+      data-action="calendar#next"
+      class="text-white flex size-10 items-center justify-center rounded-full hover:bg-slate-800 transition-colors"
+    >
+      <span class="material-symbols-outlined">chevron_right</span>
+    </button>
+  </div>
+
+  <!-- Calendar Grid -->
+  <div class="px-4 pb-4">
+    <!-- Day Headers -->
+    <div class="grid grid-cols-7 gap-y-1 mb-2">
+      <% %w[SUN MON TUE WED THU FRI SAT].each do |day| %>
+        <p class="text-slate-500 text-[11px] font-bold tracking-wider flex h-8 items-center justify-center">
+          <%= day %>
+        </p>
+      <% end %>
+    </div>
+
+    <!-- Date Cells -->
+    <div class="grid grid-cols-7 gap-y-1" data-calendar-target="grid">
+      <% @calendar_days.each do |day| %>
+        <%
+          is_selected = day == @selected_date
+          is_today = day == Date.today
+          is_current_month = day.month == @current_month.month
+        %>
+        <button
+          type="button"
+          data-action="calendar#selectDate"
+          data-date="<%= day.strftime('%Y-%m-%d') %>"
+          class="h-10 w-full flex items-center justify-center text-sm font-medium transition-all <%=
+            if !is_current_month
+              'text-slate-600'
+            elsif is_selected
+              ''
+            elsif is_today
+              'text-primary'
+            else
+              'text-white'
+            end
+          %>"
+        >
+          <div class="flex size-8 items-center justify-center rounded-full <%=
+            if is_selected
+              'bg-primary text-white shadow-lg shadow-primary/30'
+            else
+              'hover:bg-slate-800'
+            end
+          %>">
+            <%= day.day %>
+          </div>
+        </button>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Schedule Section -->
+  <div class="px-4">
+    <div class="flex items-center justify-between pb-2 pt-4">
+      <h3 class="text-white text-lg font-bold" data-calendar-target="scheduleTitle">
+        <% if @selected_date == Date.today %>
+          Today's Schedule
+        <% else %>
+          <%= @selected_date.strftime('%b %-d') %>'s Schedule
+        <% end %>
+      </h3>
+      <span class="text-xs font-semibold text-primary px-2 py-1 bg-primary/10 rounded-full" data-calendar-target="scheduleCount">
+        <%= @remaining_tasks %> Task<%= @remaining_tasks != 1 ? 's' : '' %> Remaining
+      </span>
+    </div>
+
+    <!-- Task Timeline -->
+    <div class="space-y-3 pb-12" data-calendar-target="taskList">
+      <% if @all_tasks.empty? %>
+        <div class="text-center text-slate-400 py-8">
+          <span class="material-symbols-outlined text-4xl mb-2 block">event_available</span>
+          <p>No tasks scheduled</p>
+        </div>
+      <% else %>
+        <% @all_tasks.each do |task| %>
+          <%
+            priority = priority_styles[task.priority] || priority_styles['medium']
+            is_done = task.done?
+          %>
+          <%= link_to edit_task_path(task),
+              class: "flex flex-col py-3 px-4 rounded-xl border shadow-sm cursor-pointer transition-all hover:border-slate-600 block #{
+                if is_done
+                  'bg-[#141b2b] border-dashed border-slate-800 opacity-60'
+                else
+                  'bg-[#1a2333] border-slate-800'
+                end
+              }",
+              data: { turbo_frame: "modal-content" } do %>
+            <div class="flex justify-between items-start">
+              <p class="text-base font-bold <%= is_done ? 'text-slate-400 line-through' : 'text-white' %>">
+                <%= task.title %>
+              </p>
+              <span class="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded <%= priority[:bg] %> <%= priority[:text] %>">
+                <%= priority[:label] %>
+              </span>
+            </div>
+            <% if task.start_time.present? || is_done %>
+              <p class="text-sm mt-1 <%= is_done ? 'text-slate-500' : 'text-[#92a4c9]' %>">
+                <% if task.start_time.present? && task.end_time.present? %>
+                  <%= task.start_time.strftime('%l:%M %p').strip %> - <%= task.end_time.strftime('%l:%M %p').strip %>
+                <% elsif task.start_time.present? %>
+                  <%= task.start_time.strftime('%l:%M %p').strip %>
+                <% else %>
+                  Completed
+                <% end %>
+              </p>
+            <% end %>
+          <% end %>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+</main>
+
+<% if mobile? %>
+  <%= render "shared/floating_add_button", path: new_task_path(date: @selected_date) %>
+<% end %>

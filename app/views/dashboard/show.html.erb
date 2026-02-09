@@ -1,0 +1,76 @@
+<%
+  stat_cards = [
+    { icon: 'assignment', label: 'Total Tasks', value: @weekly_stats[:total], color: 'bg-blue-500' },
+    { icon: 'check_circle', label: 'Completed', value: @weekly_stats[:completed], color: 'bg-green-500' },
+    { icon: 'play_circle', label: 'In Progress', value: @weekly_stats[:in_progress], color: 'bg-cyan-500' },
+    { icon: 'history', label: 'Carried Over', value: @weekly_stats[:carried_over], color: 'bg-orange-500' },
+    { icon: 'block', label: 'Blocked', value: @weekly_stats[:blocked], color: 'bg-red-500' },
+    { icon: 'pending', label: 'Pending', value: @weekly_stats[:pending], color: 'bg-slate-500' }
+  ]
+%>
+
+<% if mobile? %>
+  <%= render "shared/header", title: "Dashboard", left_icon: "dashboard" %>
+<% end %>
+
+<div class="flex-1 p-6 overflow-y-auto <%= 'pb-24' if mobile? %>">
+  <!-- Header -->
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold text-white mb-1">Dashboard</h1>
+    <p class="text-slate-400">
+      Weekly overview for <%= @week_start.strftime('%b %-d') %> - <%= @week_end.strftime('%b %-d, %Y') %>
+    </p>
+  </div>
+
+  <!-- Weekly Stats Grid -->
+  <div class="mb-8">
+    <h2 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+      <span class="material-symbols-outlined text-primary">bar_chart</span>
+      This Week
+    </h2>
+    <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+      <% stat_cards.each do |card| %>
+        <div class="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg flex items-center justify-center <%= card[:color] %>">
+              <span class="material-symbols-outlined text-white"><%= card[:icon] %></span>
+            </div>
+            <div>
+              <p class="text-2xl font-bold text-white"><%= card[:value] %></p>
+              <p class="text-slate-400 text-sm"><%= card[:label] %></p>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Notes Created -->
+  <div class="mb-8">
+    <div class="bg-slate-800/50 rounded-xl p-4 border border-slate-700 inline-flex items-center gap-4">
+      <div class="w-12 h-12 rounded-lg bg-purple-500 flex items-center justify-center">
+        <span class="material-symbols-outlined text-white text-2xl">description</span>
+      </div>
+      <div>
+        <p class="text-3xl font-bold text-white"><%= @weekly_notes %></p>
+        <p class="text-slate-400">Notes created this week</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Monthly Chart -->
+  <div class="mb-6">
+    <h2 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+      <span class="material-symbols-outlined text-primary">trending_up</span>
+      Monthly Activity
+    </h2>
+    <div class="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
+      <div class="h-72">
+        <canvas
+          data-controller="chart"
+          data-chart-data-value="<%= @monthly_data.to_json %>"
+        ></canvas>
+      </div>
+    </div>
+  </div>
+</div>

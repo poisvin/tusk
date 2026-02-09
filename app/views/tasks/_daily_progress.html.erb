@@ -1,0 +1,37 @@
+<%
+  tasks ||= []
+  total = tasks.count
+  completed = tasks.count { |t| t.done? || t.closed? }
+  percentage = total > 0 ? (completed.to_f / total * 100).round : 0
+
+  message = if total == 0
+    "Add tasks to get started!"
+  elsif completed == total
+    "All done! Great job!"
+  elsif percentage >= 75
+    "Almost there! Keep going!"
+  elsif percentage >= 50
+    "Halfway there!"
+  elsif percentage > 0
+    "Good progress!"
+  else
+    "Let's get started!"
+  end
+%>
+
+<div class="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
+  <div class="flex items-center justify-between mb-2">
+    <span class="text-white font-medium">Daily Progress</span>
+    <span class="text-slate-400 text-sm"><%= completed %> of <%= total %> done</span>
+  </div>
+
+  <!-- Progress Bar -->
+  <div class="w-full bg-slate-700 rounded-full h-2 mb-2">
+    <div
+      class="bg-primary h-2 rounded-full transition-all duration-500"
+      style="width: <%= percentage %>%"
+    ></div>
+  </div>
+
+  <p class="text-slate-400 text-sm"><%= message %></p>
+</div>

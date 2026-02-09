@@ -1,0 +1,26 @@
+<% if flash.any? %>
+  <div class="fixed top-4 right-4 z-50 space-y-2" data-controller="flash">
+    <% flash.each do |type, message| %>
+      <%
+        bg_class = case type.to_s
+        when 'notice', 'success' then 'bg-green-500/90'
+        when 'alert', 'error' then 'bg-red-500/90'
+        else 'bg-slate-700/90'
+        end
+      %>
+      <div
+        class="<%= bg_class %> text-white px-4 py-3 rounded-lg shadow-lg backdrop-blur-sm flex items-center gap-3 animate-slide-in"
+        data-flash-target="message"
+        data-action="click->flash#dismiss"
+      >
+        <span class="material-symbols-outlined text-lg">
+          <%= type.to_s == 'notice' || type.to_s == 'success' ? 'check_circle' : 'error' %>
+        </span>
+        <span class="text-sm font-medium"><%= message %></span>
+        <button class="ml-2 text-white/70 hover:text-white">
+          <span class="material-symbols-outlined text-sm">close</span>
+        </button>
+      </div>
+    <% end %>
+  </div>
+<% end %>

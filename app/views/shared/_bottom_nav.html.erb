@@ -1,0 +1,21 @@
+<nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] h-20 bg-background-dark/90 backdrop-blur-md border-t border-slate-800 flex items-center justify-around px-6 pb-2 z-10">
+  <%= link_to root_path, class: "flex flex-col items-center gap-1 #{current_page?(root_path) ? 'text-primary' : 'text-slate-400'}" do %>
+    <span class="material-symbols-outlined">home</span>
+    <span class="text-[10px] font-medium">Today</span>
+  <% end %>
+
+  <%= link_to calendar_path, class: "flex flex-col items-center gap-1 #{current_page?(calendar_path) ? 'text-primary' : 'text-slate-400'}" do %>
+    <span class="material-symbols-outlined">calendar_month</span>
+    <span class="text-[10px] font-medium">Calendar</span>
+  <% end %>
+
+  <%= link_to notes_path, class: "flex flex-col items-center gap-1 #{controller_name == 'notes' ? 'text-primary' : 'text-slate-400'}" do %>
+    <span class="material-symbols-outlined">notes</span>
+    <span class="text-[10px] font-medium">Notes</span>
+  <% end %>
+
+  <%= link_to settings_path, class: "flex flex-col items-center gap-1 #{current_page?(settings_path) ? 'text-primary' : 'text-slate-400'}" do %>
+    <span class="material-symbols-outlined">settings</span>
+    <span class="text-[10px] font-medium">Settings</span>
+  <% end %>
+</nav>

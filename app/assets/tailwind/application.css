@@ -1,0 +1,130 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #135bec;
+  --color-background-light: #f6f6f8;
+  --color-background-dark: #101622;
+  --font-family-display: "Inter", sans-serif;
+}
+
+@layer base {
+  body {
+    font-family: var(--font-family-display);
+  }
+}
+
+/* Trix Editor Dark Theme */
+trix-editor {
+  @apply bg-slate-800/50 border border-slate-700 rounded-lg text-white min-h-[100px] p-3;
+}
+
+trix-editor:focus {
+  @apply border-primary outline-none;
+}
+
+trix-toolbar {
+  @apply bg-slate-800/30 border-b border-slate-700 p-2;
+}
+
+trix-toolbar .trix-button-group {
+  @apply border-slate-700;
+}
+
+trix-toolbar .trix-button {
+  @apply text-slate-400 border-slate-700;
+}
+
+trix-toolbar .trix-button:hover {
+  @apply bg-slate-700;
+}
+
+trix-toolbar .trix-button.trix-active {
+  @apply bg-slate-700 text-primary;
+}
+
+/* Action Text content styling */
+.trix-content {
+  @apply text-white;
+}
+
+.trix-content h1 {
+  @apply text-xl font-bold mb-2;
+}
+
+.trix-content p {
+  @apply my-2;
+}
+
+.trix-content ul, .trix-content ol {
+  @apply pl-6 my-2;
+}
+
+.trix-content li {
+  @apply my-1;
+}
+
+.trix-content blockquote {
+  @apply border-l-3 border-slate-600 pl-4 my-2 text-slate-400;
+}
+
+.trix-content pre {
+  @apply bg-slate-800 rounded-lg p-3 my-2 overflow-x-auto;
+}
+
+.trix-content code {
+  @apply bg-slate-800 rounded px-1 text-sm;
+}
+
+/* Custom checkbox styling */
+input[type="checkbox"] {
+  @apply appearance-none h-6 w-6 rounded border-2 border-slate-600 bg-transparent cursor-pointer transition-all;
+}
+
+input[type="checkbox"]:checked {
+  @apply bg-primary border-primary;
+  background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e");
+}
+
+input[type="checkbox"]:focus {
+  @apply outline-none ring-0;
+}
+
+/* Toggle switch base */
+.toggle-switch {
+  @apply w-12 h-6 rounded-full transition-all cursor-pointer;
+}
+
+.toggle-switch-knob {
+  @apply w-5 h-5 rounded-full bg-white shadow transform transition-transform;
+}
+
+/* Animations */
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-out {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+.animate-slide-in {
+  animation: slide-in 0.3s ease-out;
+}
+
+.animate-slide-out {
+  animation: slide-out 0.3s ease-in forwards;
+}

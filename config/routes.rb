@@ -1,4 +1,22 @@
 Rails.application.routes.draw do
+  # Web routes (new Stimulus/Turbo views)
+  root "tasks#index"
+
+  resources :tasks do
+    member do
+      post :toggle_status
+    end
+    resources :updates, controller: 'task_updates', only: [:create, :destroy]
+    resources :linked_notes, only: [:create, :destroy]
+  end
+
+  resources :notes
+  resource :calendar, only: [:show], controller: 'calendar'
+  resource :dashboard, only: [:show], controller: 'dashboard'
+  resource :settings, only: [:show, :update], controller: 'settings'
+  resources :tags, only: [:index, :create, :update, :destroy]
+
+  # API routes (for backward compatibility with any remaining API calls)
   namespace :api do
     namespace :v1 do
       resources :tasks do

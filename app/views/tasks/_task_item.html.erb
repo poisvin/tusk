@@ -1,0 +1,74 @@
+<%
+  carried_over ||= false
+  is_done = task.done?
+
+  status_styles = {
+    'backlog' => { icon: 'inbox', color: 'text-slate-400' },
+    'in_progress' => { icon: 'play_circle', color: 'text-blue-400' },
+    'partial' => { icon: 'timelapse', color: 'text-orange-400' },
+    'done' => { icon: 'check_circle', color: 'text-green-400' },
+    'blocked' => { icon: 'block', color: 'text-red-400' },
+    'closed' => { icon: 'do_not_disturb_on', color: 'text-slate-500' }
+  }
+  status_style = status_styles[task.status] || status_styles['backlog']
+
+  border_class = case task.status
+  when 'in_progress' then 'border-l-2 border-l-blue-400'
+  when 'partial' then 'border-l-2 border-l-orange-400'
+  when 'blocked' then 'border-l-2 border-l-red-400'
+  else ''
+  end
+%>
+
+<div
+  id="<%= dom_id(task) %>"
+  class="flex items-center gap-4 bg-background-dark px-4 min-h-[72px] py-2 justify-between border-b border-slate-800/50 cursor-pointer hover:bg-slate-800/30 transition-colors <%= border_class %>"
+  data-controller="task-item"
+  data-task-item-id-value="<%= task.id %>"
+  data-task-item-done-value="<%= is_done %>"
+>
+  <div class="flex items-center gap-4 flex-1">
+    <!-- Checkbox -->
+    <div class="flex size-7 items-center justify-center">
+      <%= button_to toggle_status_task_path(task),
+          method: :post,
+          form: { data: { turbo_frame: "_top" } },
+          class: "flex items-center justify-center",
+          data: { action: "click->task-item#toggle" } do %>
+        <input
+          type="checkbox"
+          <%= 'checked' if is_done %>
+          class="h-6 w-6 rounded cursor-pointer"
+          onclick="return false;"
+        >
+      <% end %>
+    </div>
+
+    <!-- Task Details - Clickable to edit -->
+    <%= link_to edit_task_path(task),
+        class: "flex flex-col justify-center flex-1",
+        data: { turbo_frame: "modal-content" } do %>
+      <p class="text-base font-medium leading-normal line-clamp-1 <%= is_done ? 'text-slate-500 line-through' : 'text-white' %>">
+        <%= task.title %>
+      </p>
+      <% if task.start_time.present? %>
+        <p class="text-sm font-normal leading-normal line-clamp-2 <%= is_done ? 'text-slate-600' : 'text-[#92a4c9]' %>">
+          <%= format_time_range(task) %>
+        </p>
+      <% end %>
+    <% end %>
+  </div>
+
+  <!-- Status Icon -->
+  <div class="shrink-0">
+    <% if carried_over %>
+      <div class="text-orange-500 flex size-7 items-center justify-center" title="Carried over">
+        <span class="material-symbols-outlined">history</span>
+      </div>
+    <% else %>
+      <div class="<%= status_style[:color] %> flex size-7 items-center justify-center" title="<%= task.status.humanize %>">
+        <span class="material-symbols-outlined"><%= status_style[:icon] %></span>
+      </div>
+    <% end %>
+  </div>
+</div>

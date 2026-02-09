@@ -45,3 +45,15 @@ group :development, :test do
   gem "shoulda-matchers"
   gem "factory_bot_rails"
 end
+
+gem "dockerfile-rails", ">= 1.7", :group => :development
+
+# Frontend
+gem "sprockets-rails"
+gem "tailwindcss-rails"
+gem "image_processing", "~> 1.2"  # For Action Text attachments
+
+# Hotwire
+gem "turbo-rails"
+gem "stimulus-rails"
+gem "importmap-rails"

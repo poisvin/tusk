@@ -1,0 +1,57 @@
+<%
+  preset_colors = ['#135bec', '#ef4444', '#22c55e', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#64748b']
+%>
+
+<%= turbo_frame_tag "modal-content" do %>
+  <div class="bg-background-dark border border-slate-800 rounded-t-2xl sm:rounded-2xl overflow-hidden">
+    <!-- Header -->
+    <div class="flex items-center justify-between p-4 border-b border-slate-800">
+      <button
+        type="button"
+        class="text-slate-400 hover:text-white"
+        data-action="modal#close"
+      >
+        Cancel
+      </button>
+      <h2 class="text-white font-semibold">
+        Edit Tag
+      </h2>
+      <button
+        type="submit"
+        form="tag-form"
+        class="text-primary font-semibold hover:text-blue-400"
+      >
+        Save
+      </button>
+    </div>
+
+    <!-- Form -->
+    <%= form_with model: @tag, url: tag_path(@tag), id: "tag-form", class: "p-4" do |f| %>
+      <div class="mb-4" data-controller="tag-color">
+        <label class="text-slate-400 text-sm mb-2 block">Color</label>
+        <div class="flex gap-2 mb-3">
+          <% preset_colors.each do |color| %>
+            <button
+              type="button"
+              data-action="tag-color#select"
+              data-color="<%= color %>"
+              data-tag-color-target="button"
+              class="w-8 h-8 rounded-full transition-all <%= 'ring-2 ring-white ring-offset-2 ring-offset-background-dark' if @tag.color == color %>"
+              style="background-color: <%= color %>"
+            ></button>
+          <% end %>
+        </div>
+        <%= f.hidden_field :color, data: { tag_color_target: "field" } %>
+      </div>
+
+      <div class="mb-4">
+        <label class="text-slate-400 text-sm mb-2 block">Name</label>
+        <%= f.text_field :name,
+            class: "w-full bg-slate-800/50 border #{@tag.errors[:name].any? ? 'border-red-500' : 'border-slate-700'} rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-primary" %>
+        <% if @tag.errors[:name].any? %>
+          <p class="text-red-500 text-sm mt-1"><%= @tag.errors[:name].first %></p>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+<% end %>

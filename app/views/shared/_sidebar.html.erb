@@ -1,0 +1,65 @@
+<aside
+  class="h-screen bg-slate-900 border-r border-slate-800 flex flex-col transition-all duration-300"
+  data-controller="sidebar"
+  data-sidebar-collapsed-class="w-16"
+  data-sidebar-expanded-class="w-52"
+>
+  <!-- Logo -->
+  <div class="p-4 border-b border-slate-800 flex items-center gap-3" data-sidebar-target="logoContainer">
+    <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shrink-0">
+      <span class="material-symbols-outlined text-white text-lg">bolt</span>
+    </div>
+    <div data-sidebar-target="logoText">
+      <h1 class="text-white font-bold">Tusk</h1>
+      <p class="text-slate-500 text-xs">Task Manager</p>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="flex-1 py-4">
+    <ul class="space-y-1 px-2">
+      <li>
+        <%= link_to dashboard_path, class: "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors #{current_page?(dashboard_path) || current_page?(root_path) && cookies[:viewport] == 'desktop' ? 'bg-primary/20 text-primary' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}", data: { sidebar_target: "navItem" } do %>
+          <span class="material-symbols-outlined">dashboard</span>
+          <span class="text-sm font-medium" data-sidebar-target="navLabel">Dashboard</span>
+        <% end %>
+      </li>
+      <li>
+        <%= link_to tasks_path, class: "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors #{controller_name == 'tasks' ? 'bg-primary/20 text-primary' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}", data: { sidebar_target: "navItem" } do %>
+          <span class="material-symbols-outlined">check_box</span>
+          <span class="text-sm font-medium" data-sidebar-target="navLabel">Tasks</span>
+        <% end %>
+      </li>
+      <li>
+        <%= link_to calendar_path, class: "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors #{current_page?(calendar_path) ? 'bg-primary/20 text-primary' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}", data: { sidebar_target: "navItem" } do %>
+          <span class="material-symbols-outlined">calendar_month</span>
+          <span class="text-sm font-medium" data-sidebar-target="navLabel">Calendar</span>
+        <% end %>
+      </li>
+      <li>
+        <%= link_to notes_path, class: "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors #{controller_name == 'notes' ? 'bg-primary/20 text-primary' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}", data: { sidebar_target: "navItem" } do %>
+          <span class="material-symbols-outlined">description</span>
+          <span class="text-sm font-medium" data-sidebar-target="navLabel">Notes</span>
+        <% end %>
+      </li>
+      <li>
+        <%= link_to settings_path, class: "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors #{current_page?(settings_path) ? 'bg-primary/20 text-primary' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}", data: { sidebar_target: "navItem" } do %>
+          <span class="material-symbols-outlined">settings</span>
+          <span class="text-sm font-medium" data-sidebar-target="navLabel">Settings</span>
+        <% end %>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- Collapse Toggle -->
+  <div class="p-2 border-t border-slate-800">
+    <button
+      class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-colors"
+      data-action="sidebar#toggle"
+      data-sidebar-target="toggleButton"
+    >
+      <span class="material-symbols-outlined" data-sidebar-target="toggleIcon">chevron_left</span>
+      <span class="text-sm font-medium" data-sidebar-target="navLabel">Collapse</span>
+    </button>
+  </div>
+</aside>
