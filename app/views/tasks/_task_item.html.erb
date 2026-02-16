@@ -39,7 +39,7 @@
           type="checkbox"
           <%= 'checked' if is_done %>
           class="h-6 w-6 rounded cursor-pointer"
-          onclick="return false;"
+          onclick="event.preventDefault();"
         >
       <% end %>
     </div>
