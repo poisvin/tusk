@@ -22,7 +22,7 @@
     </div>
 
     <!-- Form -->
-    <%= form_with model: @note, id: "note-form", class: "p-4 overflow-y-auto max-h-[calc(90vh-60px)]" do |f| %>
+    <%= form_with model: @note, id: "note-form", class: "p-4 overflow-y-auto max-h-[calc(90vh-60px)]", data: { turbo_frame: "_top" } do |f| %>
       <!-- Title -->
       <div class="mb-4">
         <%= f.text_field :title,

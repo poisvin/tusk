@@ -26,7 +26,7 @@
     </div>
 
     <!-- Form -->
-    <%= form_with model: @tag, url: tag_path(@tag), id: "tag-form", class: "p-4" do |f| %>
+    <%= form_with model: @tag, url: tag_path(@tag), id: "tag-form", class: "p-4", data: { turbo_frame: "_top" } do |f| %>
       <div class="mb-4" data-controller="tag-color">
         <label class="text-slate-400 text-sm mb-2 block">Color</label>
         <div class="flex gap-2 mb-3">
