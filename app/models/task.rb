@@ -18,7 +18,11 @@ class Task < ApplicationRecord
   scope :for_date, ->(date) { where(scheduled_date: date) }
   scope :incomplete, -> { where.not(status: :done) }
   scope :carried_over, -> { where(carried_over: true) }
+  scope :ordered, -> {
+    order(Arel.sql('CASE WHEN status IN (3, 5) THEN 1 ELSE 0 END, position ASC NULLS LAST, start_time ASC NULLS LAST'))
+  }
 
+  before_create :assign_default_position
   before_create :adjust_date_for_recurrence, if: :should_adjust_date?
   after_create :generate_recurring_occurrences, if: :should_generate_occurrences?
   after_update :sync_recurring_series, if: :should_sync_series?
@@ -39,6 +43,11 @@ class Task < ApplicationRecord
   end
 
   private
+
+  def assign_default_position
+    max_pos = Task.where(scheduled_date: scheduled_date).maximum(:position) || 0
+    self.position = max_pos + 1
+  end
 
   def should_adjust_date?
     # Adjust date for recurring tasks that aren't children

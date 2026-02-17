@@ -6,11 +6,11 @@ class CalendarController < ApplicationController
 
     @tasks = Task.for_date(@selected_date)
                  .includes(:tags)
-                 .order(Arel.sql('start_time IS NULL, start_time ASC'))
+                 .ordered
     @carried_over = Task.for_date(@selected_date)
                         .carried_over
                         .includes(:tags)
-                        .order(Arel.sql('start_time IS NULL, start_time ASC'))
+                        .ordered
     @all_tasks = @tasks + @carried_over
     @remaining_tasks = @all_tasks.reject { |t| t.done? }.count
 

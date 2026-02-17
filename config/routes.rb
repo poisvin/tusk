@@ -3,6 +3,9 @@ Rails.application.routes.draw do
   root "tasks#index"
 
   resources :tasks do
+    collection do
+      patch :reorder
+    end
     member do
       post :toggle_status
       patch :reschedule

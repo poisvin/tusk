@@ -16,6 +16,10 @@ module ApplicationHelper
       "controllers/chart_controller" => "/js/controllers/chart_controller.js",
       "controllers/notifications_controller" => "/js/controllers/notifications_controller.js",
       "controllers/tag_color_controller" => "/js/controllers/tag_color_controller.js",
+      "controllers/flash_controller" => "/js/controllers/flash_controller.js",
+      "controllers/task_item_controller" => "/js/controllers/task_item_controller.js",
+      "controllers/task_form_controller" => "/js/controllers/task_form_controller.js",
+      "controllers/sortable_list_controller" => "/js/controllers/sortable_list_controller.js",
       "trix" => "/js/trix.js",
       "@rails/actiontext" => "/js/actiontext.esm.js"
     }

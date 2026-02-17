@@ -26,7 +26,9 @@
           <%= @carried_over.count %>
         </span>
       </div>
-      <div class="bg-slate-800/30 rounded-xl overflow-hidden border border-orange-400/20">
+      <div class="bg-slate-800/30 rounded-xl overflow-hidden border border-orange-400/20"
+           data-controller="sortable-list"
+           data-sortable-list-url-value="<%= reorder_tasks_path %>">
         <% @carried_over.each do |task| %>
           <%= render "tasks/task_item", task: task, carried_over: true %>
         <% end %>
@@ -50,7 +52,9 @@
     </div>
 
     <% if @tasks.any? %>
-      <div id="tasks-list" class="bg-slate-800/30 rounded-xl overflow-hidden border border-slate-700">
+      <div id="tasks-list" class="bg-slate-800/30 rounded-xl overflow-hidden border border-slate-700"
+           data-controller="sortable-list"
+           data-sortable-list-url-value="<%= reorder_tasks_path %>">
         <% @tasks.each do |task| %>
           <%= render "tasks/task_item", task: task %>
         <% end %>

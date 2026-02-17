@@ -132,7 +132,9 @@
     </div>
 
     <!-- Task Timeline -->
-    <div class="space-y-3 pb-12" data-calendar-target="taskList">
+    <div class="space-y-3 pb-12" data-calendar-target="taskList"
+         data-controller="sortable-list"
+         data-sortable-list-url-value="<%= reorder_tasks_path %>">
       <% if @all_tasks.empty? %>
         <div class="text-center text-slate-400 py-8">
           <span class="material-symbols-outlined text-4xl mb-2 block">event_available</span>
@@ -144,20 +146,19 @@
             priority = priority_styles[task.priority] || priority_styles['medium']
             is_done = task.done?
           %>
-          <%= link_to edit_task_path(task),
-              draggable: "true",
-              class: "flex flex-col py-3 px-4 rounded-xl border shadow-sm cursor-pointer transition-all hover:border-slate-600 block #{
-                if is_done
-                  'bg-[#141b2b] border-dashed border-slate-800 opacity-60'
-                else
-                  'bg-[#1a2333] border-slate-800'
-                end
-              }",
-              data: { turbo_frame: "modal-content", task_id: task.id, action: "dragstart->calendar#dragStart dragend->calendar#dragEnd" } do %>
+          <div
+            draggable="true"
+            class="flex flex-col py-3 px-4 rounded-xl border shadow-sm transition-all hover:border-slate-600 <%= is_done ? 'bg-[#141b2b] border-dashed border-slate-800 opacity-60' : 'bg-[#1a2333] border-slate-800' %>"
+            data-task-id="<%= task.id %>"
+            data-sortable-list-target="item"
+            data-action="dragstart->sortable-list#dragStart dragend->sortable-list#dragEnd dragover->sortable-list#dragOver dragenter->sortable-list#dragEnter dragleave->sortable-list#dragLeave drop->sortable-list#drop"
+          >
             <div class="flex justify-between items-start">
-              <p class="text-base font-bold <%= is_done ? 'text-slate-400 line-through' : 'text-white' %>">
+              <%= link_to edit_task_path(task),
+                  class: "text-base font-bold cursor-pointer #{is_done ? 'text-slate-400 line-through' : 'text-white'}",
+                  data: { turbo_frame: "modal-content" } do %>
                 <%= task.title %>
-              </p>
+              <% end %>
               <span class="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded <%= priority[:bg] %> <%= priority[:text] %>">
                 <%= priority[:label] %>
               </span>
@@ -173,7 +174,7 @@
                 <% end %>
               </p>
             <% end %>
-          <% end %>
+          </div>
         <% end %>
       <% end %>
     </div>

@@ -7,11 +7,11 @@ class TasksController < ApplicationController
     @tasks = Task.for_date(@date)
                  .where(carried_over: [false, nil])
                  .includes(:tags)
-                 .order(Arel.sql('start_time IS NULL, start_time ASC'))
+                 .ordered
     @carried_over = Task.for_date(@date)
                         .carried_over
                         .includes(:tags)
-                        .order(Arel.sql('start_time IS NULL, start_time ASC'))
+                        .ordered
     @all_tasks = @tasks + @carried_over
   end
 
@@ -82,6 +82,17 @@ class TasksController < ApplicationController
     else
       render json: { error: @task.errors.full_messages }, status: :unprocessable_entity
     end
+  end
+
+  def reorder
+    task_ids = params[:task_ids]
+    return head :bad_request unless task_ids.is_a?(Array)
+
+    task_ids.each_with_index do |id, index|
+      Task.where(id: id).update_all(position: index + 1)
+    end
+
+    head :ok
   end
 
   private
