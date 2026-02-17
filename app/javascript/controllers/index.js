@@ -10,6 +10,9 @@ import CalendarController from "controllers/calendar_controller"
 import ChartController from "controllers/chart_controller"
 import NotificationsController from "controllers/notifications_controller"
 import TagColorController from "controllers/tag_color_controller"
+import FlashController from "controllers/flash_controller"
+import TaskItemController from "controllers/task_item_controller"
+import TaskFormController from "controllers/task_form_controller"
 
 application.register("responsive", ResponsiveController)
 application.register("modal", ModalController)
@@ -20,3 +23,6 @@ application.register("calendar", CalendarController)
 application.register("chart", ChartController)
 application.register("notifications", NotificationsController)
 application.register("tag-color", TagColorController)
+application.register("flash", FlashController)
+application.register("task-item", TaskItemController)
+application.register("task-form", TaskFormController)
