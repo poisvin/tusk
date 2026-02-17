@@ -85,6 +85,61 @@ export default class extends Controller {
     this.updateToggleButtons()
   }
 
+  // Drag and drop for task rescheduling
+
+  dragStart(event) {
+    const taskId = event.currentTarget.dataset.taskId
+    event.dataTransfer.setData("text/plain", taskId)
+    event.dataTransfer.effectAllowed = "move"
+    event.currentTarget.classList.add("opacity-50")
+  }
+
+  dragEnd(event) {
+    event.currentTarget.classList.remove("opacity-50")
+  }
+
+  dragOver(event) {
+    event.preventDefault()
+    event.dataTransfer.dropEffect = "move"
+  }
+
+  dragEnter(event) {
+    event.preventDefault()
+    const cell = event.currentTarget
+    cell.classList.add("bg-primary/20", "ring-2", "ring-primary", "rounded-lg")
+  }
+
+  dragLeave(event) {
+    const cell = event.currentTarget
+    cell.classList.remove("bg-primary/20", "ring-2", "ring-primary", "rounded-lg")
+  }
+
+  drop(event) {
+    event.preventDefault()
+    const cell = event.currentTarget
+    cell.classList.remove("bg-primary/20", "ring-2", "ring-primary", "rounded-lg")
+
+    const taskId = event.dataTransfer.getData("text/plain")
+    const targetDate = cell.dataset.date
+    if (!taskId || !targetDate) return
+
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').content
+
+    fetch(`/tasks/${taskId}/reschedule`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-Token": csrfToken
+      },
+      body: JSON.stringify({ date: targetDate })
+    }).then(response => {
+      if (response.ok) {
+        this.selectedDateValue = targetDate
+        this.navigateToDate()
+      }
+    })
+  }
+
   formatDate(date) {
     const year = date.getFullYear()
     const month = String(date.getMonth() + 1).padStart(2, '0')

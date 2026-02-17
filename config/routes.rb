@@ -5,6 +5,7 @@ Rails.application.routes.draw do
   resources :tasks do
     member do
       post :toggle_status
+      patch :reschedule
     end
     resources :updates, controller: 'task_updates', only: [:create, :destroy]
     resources :linked_notes, only: [:create, :destroy]

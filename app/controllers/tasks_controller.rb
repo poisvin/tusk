@@ -1,5 +1,5 @@
 class TasksController < ApplicationController
-  before_action :set_task, only: [:show, :edit, :update, :destroy, :toggle_status]
+  before_action :set_task, only: [:show, :edit, :update, :destroy, :toggle_status, :reschedule]
   before_action :set_tags, only: [:new, :edit, :create, :update]
 
   def index
@@ -73,6 +73,14 @@ class TasksController < ApplicationController
     respond_to do |format|
       format.html { redirect_to tasks_path }
       format.turbo_stream
+    end
+  end
+
+  def reschedule
+    if @task.update(scheduled_date: params[:date])
+      render json: { ok: true }
+    else
+      render json: { error: @task.errors.full_messages }, status: :unprocessable_entity
     end
   end
 

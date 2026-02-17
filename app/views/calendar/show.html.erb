@@ -88,7 +88,7 @@
         %>
         <button
           type="button"
-          data-action="calendar#selectDate"
+          data-action="calendar#selectDate dragover->calendar#dragOver dragenter->calendar#dragEnter dragleave->calendar#dragLeave drop->calendar#drop"
           data-date="<%= day.strftime('%Y-%m-%d') %>"
           class="h-10 w-full flex items-center justify-center text-sm font-medium transition-all <%=
             if !is_current_month
@@ -145,6 +145,7 @@
             is_done = task.done?
           %>
           <%= link_to edit_task_path(task),
+              draggable: "true",
               class: "flex flex-col py-3 px-4 rounded-xl border shadow-sm cursor-pointer transition-all hover:border-slate-600 block #{
                 if is_done
                   'bg-[#141b2b] border-dashed border-slate-800 opacity-60'
@@ -152,7 +153,7 @@
                   'bg-[#1a2333] border-slate-800'
                 end
               }",
-              data: { turbo_frame: "modal-content" } do %>
+              data: { turbo_frame: "modal-content", task_id: task.id, action: "dragstart->calendar#dragStart dragend->calendar#dragEnd" } do %>
             <div class="flex justify-between items-start">
               <p class="text-base font-bold <%= is_done ? 'text-slate-400 line-through' : 'text-white' %>">
                 <%= task.title %>
