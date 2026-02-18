@@ -19,7 +19,7 @@ module ApplicationHelper
       "controllers/flash_controller" => "/js/controllers/flash_controller.js",
       "controllers/task_item_controller" => "/js/controllers/task_item_controller.js",
       "controllers/task_form_controller" => "/js/controllers/task_form_controller.js",
-      "controllers/sortable_list_controller" => "/js/controllers/sortable_list_controller.js",
+      "controllers/bulk_select_controller" => "/js/controllers/bulk_select_controller.js",
       "trix" => "/js/trix.js",
       "@rails/actiontext" => "/js/actiontext.esm.js"
     }

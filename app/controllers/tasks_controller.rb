@@ -84,15 +84,23 @@ class TasksController < ApplicationController
     end
   end
 
-  def reorder
+  def bulk_complete
     task_ids = params[:task_ids]
     return head :bad_request unless task_ids.is_a?(Array)
 
-    task_ids.each_with_index do |id, index|
-      Task.where(id: id).update_all(position: index + 1)
-    end
+    Task.where(id: task_ids).update_all(status: Task.statuses[:done])
+    redirect_to tasks_path, notice: "#{task_ids.size} task#{'s' if task_ids.size != 1} marked as done."
+  end
 
-    head :ok
+  def bulk_move_next_day
+    task_ids = params[:task_ids]
+    return head :bad_request unless task_ids.is_a?(Array)
+
+    tasks = Task.where(id: task_ids)
+    tasks.each do |task|
+      task.update(scheduled_date: task.scheduled_date + 1.day)
+    end
+    redirect_to tasks_path, notice: "#{task_ids.size} task#{'s' if task_ids.size != 1} moved to next day."
   end
 
   private

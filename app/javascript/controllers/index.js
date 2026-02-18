@@ -13,7 +13,7 @@ import TagColorController from "controllers/tag_color_controller"
 import FlashController from "controllers/flash_controller"
 import TaskItemController from "controllers/task_item_controller"
 import TaskFormController from "controllers/task_form_controller"
-import SortableListController from "controllers/sortable_list_controller"
+import BulkSelectController from "controllers/bulk_select_controller"
 
 application.register("responsive", ResponsiveController)
 application.register("modal", ModalController)
@@ -27,4 +27,4 @@ application.register("tag-color", TagColorController)
 application.register("flash", FlashController)
 application.register("task-item", TaskItemController)
 application.register("task-form", TaskFormController)
-application.register("sortable-list", SortableListController)
+application.register("bulk-select", BulkSelectController)

@@ -4,7 +4,8 @@ Rails.application.routes.draw do
 
   resources :tasks do
     collection do
-      patch :reorder
+      post :bulk_complete
+      post :bulk_move_next_day
     end
     member do
       post :toggle_status

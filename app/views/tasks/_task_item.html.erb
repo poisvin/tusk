@@ -23,19 +23,20 @@
 <div
   id="<%= dom_id(task) %>"
   class="flex items-center gap-4 bg-background-dark px-4 min-h-[72px] py-2 justify-between border-b border-slate-800/50 cursor-pointer hover:bg-slate-800/30 transition-colors <%= border_class %>"
-  draggable="true"
   data-controller="task-item"
   data-task-item-id-value="<%= task.id %>"
   data-task-item-done-value="<%= is_done %>"
   data-task-id="<%= task.id %>"
-  data-sortable-list-target="item"
-  data-action="dragstart->sortable-list#dragStart dragend->sortable-list#dragEnd dragover->sortable-list#dragOver dragenter->sortable-list#dragEnter dragleave->sortable-list#dragLeave drop->sortable-list#drop"
 >
+  <!-- Bulk Select Checkbox -->
+  <div class="flex items-center justify-center shrink-0" onclick="event.stopPropagation()">
+    <input type="checkbox" value="<%= task.id %>"
+           data-bulk-select-target="checkbox"
+           data-action="bulk-select#toggle"
+           class="h-4 w-4 rounded border-slate-600 bg-transparent text-primary focus:ring-primary/50 cursor-pointer accent-[#3b82f6]">
+  </div>
+
   <div class="flex items-center gap-4 flex-1">
-    <!-- Drag Handle -->
-    <div class="flex items-center justify-center text-slate-600 cursor-grab active:cursor-grabbing shrink-0">
-      <span class="material-symbols-outlined text-lg">drag_indicator</span>
-    </div>
     <!-- Checkbox -->
     <div class="flex size-7 items-center justify-center">
       <%= button_to toggle_status_task_path(task),
