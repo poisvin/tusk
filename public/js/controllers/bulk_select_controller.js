@@ -15,28 +15,27 @@ export default class extends Controller {
   toggleAll() {
     const checked = this.selectAllTarget.checked
     this.checkboxTargets.forEach(cb => cb.checked = checked)
-    this.updateUI()
+    this.showActions(checked ? this.checkboxTargets.length : 0)
   }
 
   updateUI() {
-    const selected = this.selectedIds()
-    const count = selected.length
+    const count = this.selectedIds().length
+    const total = this.checkboxTargets.length
 
-    if (this.hasActionBarTarget) {
-      if (count > 0) {
-        this.actionBarTarget.classList.remove("hidden")
-      } else {
-        this.actionBarTarget.classList.add("hidden")
-      }
-    }
-
-    if (this.hasCountTarget) {
-      this.countTarget.textContent = `${count} selected`
-    }
+    this.showActions(count)
 
     if (this.hasSelectAllTarget) {
-      this.selectAllTarget.checked = count > 0 && count === this.checkboxTargets.length
-      this.selectAllTarget.indeterminate = count > 0 && count < this.checkboxTargets.length
+      this.selectAllTarget.checked = count > 0 && count === total
+      this.selectAllTarget.indeterminate = count > 0 && count < total
+    }
+  }
+
+  showActions(count) {
+    if (this.hasActionBarTarget) {
+      this.actionBarTarget.style.display = count > 0 ? "flex" : "none"
+    }
+    if (this.hasCountTarget) {
+      this.countTarget.textContent = `${count} selected`
     }
   }
 
