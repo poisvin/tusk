@@ -39,7 +39,7 @@ export default class extends Controller {
   }
 
   previous() {
-    const current = new Date(this.currentMonthValue)
+    const current = this.parseDate(this.currentMonthValue)
     if (this.viewModeValue === 'week') {
       current.setDate(current.getDate() - 7)
     } else {
@@ -50,7 +50,7 @@ export default class extends Controller {
   }
 
   next() {
-    const current = new Date(this.currentMonthValue)
+    const current = this.parseDate(this.currentMonthValue)
     if (this.viewModeValue === 'week') {
       current.setDate(current.getDate() + 7)
     } else {
@@ -78,7 +78,13 @@ export default class extends Controller {
     url.searchParams.set('date', this.selectedDateValue)
     url.searchParams.set('month', this.currentMonthValue)
     url.searchParams.set('view', this.viewModeValue)
-    Turbo.visit(url.toString())
+    const dest = url.toString()
+
+    if (window.Turbo) {
+      window.Turbo.visit(dest)
+    } else {
+      window.location.href = dest
+    }
   }
 
   updateView() {
@@ -123,7 +129,7 @@ export default class extends Controller {
     const targetDate = cell.dataset.date
     if (!taskId || !targetDate) return
 
-    const csrfToken = document.querySelector('meta[name="csrf-token"]').content
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content
 
     fetch(`/tasks/${taskId}/reschedule`, {
       method: "PATCH",
@@ -138,6 +144,12 @@ export default class extends Controller {
         this.navigateToDate()
       }
     })
+  }
+
+  // Parse "YYYY-MM-DD" as local date (not UTC)
+  parseDate(dateStr) {
+    const [year, month, day] = dateStr.split('-').map(Number)
+    return new Date(year, month - 1, day)
   }
 
   formatDate(date) {

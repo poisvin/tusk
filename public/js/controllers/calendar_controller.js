@@ -39,7 +39,7 @@ export default class extends Controller {
   }
 
   previous() {
-    const current = new Date(this.currentMonthValue)
+    const current = this.parseDate(this.currentMonthValue)
     if (this.viewModeValue === 'week') {
       current.setDate(current.getDate() - 7)
     } else {
@@ -50,7 +50,7 @@ export default class extends Controller {
   }
 
   next() {
-    const current = new Date(this.currentMonthValue)
+    const current = this.parseDate(this.currentMonthValue)
     if (this.viewModeValue === 'week') {
       current.setDate(current.getDate() + 7)
     } else {
@@ -78,11 +78,78 @@ export default class extends Controller {
     url.searchParams.set('date', this.selectedDateValue)
     url.searchParams.set('month', this.currentMonthValue)
     url.searchParams.set('view', this.viewModeValue)
-    Turbo.visit(url.toString())
+    const dest = url.toString()
+
+    if (window.Turbo) {
+      window.Turbo.visit(dest)
+    } else {
+      window.location.href = dest
+    }
   }
 
   updateView() {
     this.updateToggleButtons()
+  }
+
+  // Drag and drop for task rescheduling
+
+  dragStart(event) {
+    const taskId = event.currentTarget.dataset.taskId
+    event.dataTransfer.setData("text/plain", taskId)
+    event.dataTransfer.effectAllowed = "move"
+    event.currentTarget.classList.add("opacity-50")
+  }
+
+  dragEnd(event) {
+    event.currentTarget.classList.remove("opacity-50")
+  }
+
+  dragOver(event) {
+    event.preventDefault()
+    event.dataTransfer.dropEffect = "move"
+  }
+
+  dragEnter(event) {
+    event.preventDefault()
+    const cell = event.currentTarget
+    cell.classList.add("bg-primary/20", "ring-2", "ring-primary", "rounded-lg")
+  }
+
+  dragLeave(event) {
+    const cell = event.currentTarget
+    cell.classList.remove("bg-primary/20", "ring-2", "ring-primary", "rounded-lg")
+  }
+
+  drop(event) {
+    event.preventDefault()
+    const cell = event.currentTarget
+    cell.classList.remove("bg-primary/20", "ring-2", "ring-primary", "rounded-lg")
+
+    const taskId = event.dataTransfer.getData("text/plain")
+    const targetDate = cell.dataset.date
+    if (!taskId || !targetDate) return
+
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content
+
+    fetch(`/tasks/${taskId}/reschedule`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-Token": csrfToken
+      },
+      body: JSON.stringify({ date: targetDate })
+    }).then(response => {
+      if (response.ok) {
+        this.selectedDateValue = targetDate
+        this.navigateToDate()
+      }
+    })
+  }
+
+  // Parse "YYYY-MM-DD" as local date (not UTC)
+  parseDate(dateStr) {
+    const [year, month, day] = dateStr.split('-').map(Number)
+    return new Date(year, month - 1, day)
   }
 
   formatDate(date) {
