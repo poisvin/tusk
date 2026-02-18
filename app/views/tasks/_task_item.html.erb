@@ -37,20 +37,6 @@
   </div>
 
   <div class="flex items-center gap-4 flex-1">
-    <!-- Checkbox -->
-    <div class="flex size-7 items-center justify-center">
-      <%= button_to toggle_status_task_path(task),
-          method: :post,
-          form: { data: { turbo_frame: "_top" } },
-          class: "flex items-center justify-center" do %>
-        <span class="flex items-center justify-center h-6 w-6 rounded border-2 transition-all <%= is_done ? 'bg-primary border-primary' : 'border-slate-600 bg-transparent' %>">
-          <% if is_done %>
-            <svg class="w-4 h-4 text-white" viewBox="0 0 16 16" fill="currentColor"><path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z"/></svg>
-          <% end %>
-        </span>
-      <% end %>
-    </div>
-
     <!-- Task Details - Clickable to edit -->
     <%= link_to edit_task_path(task),
         class: "flex flex-col justify-center flex-1",
