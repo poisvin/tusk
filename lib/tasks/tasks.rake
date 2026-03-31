@@ -11,6 +11,12 @@ namespace :tasks do
     puts "Carried over #{carried_over} task(s) to today."
   end
 
+  desc "Run all daily maintenance: carryover + recurring generation"
+  task daily_maintenance: :environment do
+    Rake::Task["tasks:carryover"].invoke
+    Rake::Task["tasks:generate_recurring"].invoke
+  end
+
   desc "Generate next occurrences for recurring tasks that are due"
   task generate_recurring: :environment do
     puts "Generating recurring tasks..."

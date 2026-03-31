@@ -1,0 +1,27 @@
+name: Daily Task Carryover
+
+on:
+  schedule:
+    # 00:05 IST = 18:35 UTC previous day
+    - cron: '35 18 * * *'
+  workflow_dispatch:
+
+jobs:
+  carryover:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Wake up machine
+        run: curl -s -o /dev/null --max-time 30 https://tusk-late-dawn-5850.fly.dev/up || true
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+      - name: Run daily maintenance
+        run: |
+          flyctl ssh console \
+            --app tusk-late-dawn-5850 \
+            -C "bin/rails tasks:daily_maintenance"
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

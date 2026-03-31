@@ -4,6 +4,7 @@ class TasksController < ApplicationController
 
   def index
     @date = params[:date] ? Date.parse(params[:date]) : Date.today
+    TaskCarryoverService.process(@date) if @date == Date.today
     @tasks = Task.for_date(@date)
                  .where(carried_over: [false, nil])
                  .includes(:tags)
